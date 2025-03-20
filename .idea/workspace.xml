@@ -4,23 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="eaf9d499-e529-48c2-a246-73e196420a7d" name="更改" comment="The first edition">
-      <change afterPath="$PROJECT_DIR$/.idea/Wolfer.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/domain_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/generator_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/physics_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simulation_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/summary_module.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wrf_gui_main.py" afterDir="false" />
-    </list>
+    <list default="true" id="eaf9d499-e529-48c2-a246-73e196420a7d" name="更改" comment="The first edition" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -81,8 +65,17 @@
       <option name="presentableId" value="Default" />
       <updated>1742473701195</updated>
       <workItem from="1742473702271" duration="4893000" />
-      <workItem from="1742478636249" duration="1141000" />
+      <workItem from="1742478636249" duration="1503000" />
     </task>
+    <task id="LOCAL-00001" summary="The first edition">
+      <option name="closed" value="true" />
+      <created>1742480143646</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1742480143646</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
