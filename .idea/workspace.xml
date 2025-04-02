@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="eaf9d499-e529-48c2-a246-73e196420a7d" name="更改" comment="The First Usable Edition">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generator_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_module.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +34,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:/ONEMULE/Wolfer.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/ONEMULE/Wolfer.git&quot;,
     &quot;accountId&quot;: &quot;d34293c7-fc44-42f8-aded-9f0749f41e32&quot;
   }
 }</component>
@@ -82,7 +81,14 @@
       <updated>1742473701195</updated>
       <workItem from="1742473702271" duration="4893000" />
       <workItem from="1742478636249" duration="8137000" />
-      <workItem from="1742559223759" duration="1025000" />
+      <workItem from="1742559223759" duration="1615000" />
+      <workItem from="1742565658055" duration="2043000" />
+      <workItem from="1742703779091" duration="659000" />
+      <workItem from="1742793424048" duration="1414000" />
+      <workItem from="1742797204170" duration="5000" />
+      <workItem from="1742897061855" duration="1216000" />
+      <workItem from="1743043707409" duration="1324000" />
+      <workItem from="1743052610237" duration="187000" />
     </task>
     <task id="LOCAL-00001" summary="The first edition">
       <option name="closed" value="true" />

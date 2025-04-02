@@ -1,70 +1,50 @@
-# WRF Model Setup GUI Tool
+# WRF Namelist Generator
 
-A graphical user interface tool for configuring and setting up WRF (Weather Research and Forecasting) model simulations.
+Weather Research and Forecasting (WRF) 模型的配置文件生成工具，提供Web界面和桌面应用两种版本。
 
-## Features
+## 项目结构
 
-- Configure simulation time period
-- Set up domains with nested grids
-- Choose map projections
-- Select physics parameterization schemes
-- Configure meteorological data sources
-- Generate namelist files and run scripts
+本项目包含两个独立的版本：
 
-## Requirements
+1. **Web版本** - 提供基于Web的配置界面
+2. **桌面版本** - 提供基于PyQt5的桌面应用程序
 
-- Python 3.6 or higher
-- Required Python packages:
-  - tkinter
-  - tkcalendar
-  - numpy
-  - matplotlib (for visualization)
-  - netCDF4 (for data processing)
-  - cdsapi (for ERA5 data)
-  - xarray (for data analysis)
-  - wrf-python (for post-processing)
+## Web版本
 
-## Installation
+位于 `web_version` 目录，特点：
 
-1. Clone or download this repository
-2. Install required packages:pip install tkcalendar numpy matplotlib netCDF4 cdsapi xarray wrf-python
+- 简单的Web界面，基于Python标准库http.server实现
+- 无需安装额外依赖
+- 支持所有WRF物理参数化方案的配置
+- 启动简单，通过浏览器访问
 
-## Usage
+### 启动Web版本
 
-1. Run the main program:python wrf_gui_main.py
-2. Configure your WRF simulation using the GUI tabs:
-- Set simulation period
-- Configure domain and nesting
-- Select physics options
-- Choose data source
-- Set paths and other settings
+```bash
+cd web_version
+python server.py
+```
 
-3. Save your configuration for future use
+然后在浏览器中访问 http://localhost:8000
 
-4. Generate the namelist files and run scripts
+## 桌面版本
 
-5. Download meteorological data using the generated download script
+位于 `desktop_version` 目录，特点：
 
-6. Run the WRF simulation using the generated run script
+- 美观的桌面图形界面，基于PyQt5
+- 提供更丰富的功能和更好的用户体验
+- 支持地图预览和更高级的配置选项
 
-## Tabs Description
+### 启动桌面版本
 
-1. **Simulation Period**: Set the start and end dates/times for your simulation
-2. **Domain Setup**: Configure domain size, resolution, nesting, and map projection
-3. **Physics Options**: Select physics parameterization schemes
-4. **Data Source**: Choose meteorological data source
-5. **Settings**: Configure paths and API keys
-6. **Summary**: View a summary of all settings
+先安装依赖：
 
-## License
+```bash
+cd desktop_version
+pip install -r requirements.txt
+python main.py
+```
 
-This software is provided as-is under the MIT License.
+## 许可证
 
-## Acknowledgments
-
-- WRF model developers at NCAR/UCAR
-- The Python community for the excellent libraries
-
-## Contact
-
-For issues or suggestions, please open an issue on the GitHub repository.
+MIT 
