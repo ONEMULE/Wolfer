@@ -47,4 +47,8 @@ python main.py
 
 ## 许可证
 
+<<<<<<< HEAD
 MIT 
+=======
+MIT
+>>>>>>> dd1a7473a8bf0b735f17a9fb36cc1b7185b04ea2

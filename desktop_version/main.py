@@ -199,120 +199,118 @@ class WRFSetupApp:
         self.style = ttk.Style()
         self.style.configure("TLabel", font=("Arial", 10))
         self.style.configure("TButton", font=("Arial", 10))
-        self.style.configure("TNotebook", font=("Arial", 10))
-        self.style.configure("TNotebook.Tab", font=("Arial", 10))
+        self.style.configure("TCheckbutton", font=("Arial", 10))
+        self.style.configure("TRadiobutton", font=("Arial", 10))
         
-        # Bind tab change event
+        # Bind events
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
         
         # Queue for thread communication
         self.queue = queue.Queue()
-        self.root.after(100, self.process_queue)
-
+        
     def process_queue(self):
-        """Process messages from the queue (for thread communication)"""
+        """Process messages from worker threads"""
         try:
             msg = self.queue.get(0)
             self.status_var.set(msg)
-            if "complete" in msg.lower():
-                messagebox.showinfo("Process Complete", msg)
-        except queue.Empty:
-            pass
-        finally:
             self.root.after(100, self.process_queue)
-
+        except queue.Empty:
+            self.root.after(100, self.process_queue)
+    
     def on_tab_changed(self, event):
-        """Handle tab change event"""
-        tab_id = self.notebook.index(self.notebook.select())
+        """Update data when tab is changed"""
+        # Get current tab index
+        current_tab = self.notebook.index(self.notebook.select())
         
-        # Update config from each tab
-        self.simulation_tab.update_config()
-        self.domain_tab.update_config()
-        self.physics_tab.update_config()
-        self.data_tab.update_config()
-        self.settings_tab.update_config()
-        
-        # Update summary when entering summary tab
-        if tab_id == 5:  # Summary tab
-            self.summary_tab.update_summary()
-
+        # Update config from tab data
+        if current_tab == 0:
+            self.simulation_tab.update_config(self.config)
+        elif current_tab == 1:
+            self.domain_tab.update_config(self.config)
+        elif current_tab == 2:
+            self.physics_tab.update_config(self.config)
+        elif current_tab == 3:
+            self.data_tab.update_config(self.config)
+        elif current_tab == 4:
+            self.settings_tab.update_config(self.config)
+        elif current_tab == 5:
+            self.summary_tab.update_view(self.config)
+    
     def go_to_prev_tab(self):
-        """Go to previous tab"""
+        """Navigate to previous tab"""
         current_tab = self.notebook.index(self.notebook.select())
         if current_tab > 0:
             self.notebook.select(current_tab - 1)
-
+    
     def go_to_next_tab(self):
-        """Go to next tab"""
+        """Navigate to next tab"""
         current_tab = self.notebook.index(self.notebook.select())
-        if current_tab < len(self.notebook.tabs()) - 1:
+        if current_tab < self.notebook.index("end") - 1:
             self.notebook.select(current_tab + 1)
-
+    
     def load_config(self):
         """Load configuration from file"""
         try:
             if os.path.exists(self.config_file):
                 with open(self.config_file, 'r') as f:
                     loaded_config = json.load(f)
-                    # Update config with loaded values
-                    for key, value in loaded_config.items():
-                        if key in self.config:
-                            self.config[key] = value
-                self.status_var.set("Configuration loaded from file")
+                    self.config.update(loaded_config)
+                self.status_var.set("Configuration loaded from " + self.config_file)
         except Exception as e:
-            self.status_var.set(f"Error loading configuration: {str(e)}")
-
+            messagebox.showerror("Error", f"Failed to load configuration: {str(e)}")
+            self.status_var.set("Error loading configuration")
+    
     def save_config(self):
         """Save configuration to file"""
         try:
-            # Update config from each tab
-            self.simulation_tab.update_config()
-            self.domain_tab.update_config()
-            self.physics_tab.update_config()
-            self.data_tab.update_config()
-            self.settings_tab.update_config()
+            # Update config from all tabs
+            self.simulation_tab.update_config(self.config)
+            self.domain_tab.update_config(self.config)
+            self.physics_tab.update_config(self.config)
+            self.data_tab.update_config(self.config)
+            self.settings_tab.update_config(self.config)
             
+            # Save to file
             with open(self.config_file, 'w') as f:
                 json.dump(self.config, f, indent=4)
-            self.status_var.set("Configuration saved to file")
-            messagebox.showinfo("Save Configuration", "Configuration has been saved successfully.")
+            
+            self.status_var.set("Configuration saved to " + self.config_file)
+            messagebox.showinfo("Success", f"Configuration saved to {self.config_file}")
         except Exception as e:
-            self.status_var.set(f"Error saving configuration: {str(e)}")
-            messagebox.showerror("Save Error", f"Error saving configuration: {str(e)}")
-
+            messagebox.showerror("Error", f"Failed to save configuration: {str(e)}")
+            self.status_var.set("Error saving configuration")
+    
     def generate_files(self):
-        """Generate namelist files and download script"""
+        """Generate WRF input files"""
         try:
-            # Update config from each tab
-            self.simulation_tab.update_config()
-            self.domain_tab.update_config()
-            self.physics_tab.update_config()
-            self.data_tab.update_config()
-            self.settings_tab.update_config()
+            # Update config from all tabs
+            self.simulation_tab.update_config(self.config)
+            self.domain_tab.update_config(self.config)
+            self.physics_tab.update_config(self.config)
+            self.data_tab.update_config(self.config)
+            self.settings_tab.update_config(self.config)
             
-            # Validate required fields
-            if not self.config["user_settings"]["geog_data_path"]:
-                messagebox.showwarning("Missing Information", "Please specify the WPS_GEOG directory in the Settings tab.")
-                self.notebook.select(4)  # Go to settings tab
-                return
+            # Create output directory if it doesn't exist
+            os.makedirs(self.config["output_dir"], exist_ok=True)
             
-            if self.config["data_source"] == "ERA5" and not self.config["user_settings"]["cds_api_key"]:
-                messagebox.showwarning("Missing Information", "ERA5 data source requires CDS API key. Please set it in the Settings tab.")
-                self.notebook.select(4)  # Go to settings tab
-                return
+            # Create a generator in a separate thread
+            self.status_var.set("Generating files...")
             
-            # Create generator
+            # Start queue processing
+            self.root.after(100, self.process_queue)
+            
+            # Create generator and run in a separate thread
             generator = WRFGenerator(self.config, self.queue)
-            
-            # Start generation in a separate thread
             thread = threading.Thread(target=generator.generate_all)
             thread.daemon = True
             thread.start()
             
-            self.status_var.set("Generating files...")
+            # Show a message
+            messagebox.showinfo("Info", f"Generating files in directory: {self.config['output_dir']}\n\nThis may take a few minutes. Progress will be shown in the status bar.")
+            
         except Exception as e:
-            self.status_var.set(f"Error generating files: {str(e)}")
-            messagebox.showerror("Generation Error", f"Error generating files: {str(e)}")
+            messagebox.showerror("Error", f"Failed to generate files: {str(e)}")
+            self.status_var.set("Error generating files")
 
 def main():
     root = tk.Tk()
