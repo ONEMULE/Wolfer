@@ -7,6 +7,7 @@
     <meta name="keywords" content="WRF, Weather Model, Atmospheric Simulation, Namelist Generator">
     <meta name="author" content="WRF Configuration Team">
     <title>WRF Namelist Generator - Web Configuration Interface</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- Open Graph tags for social sharing -->
     <meta property="og:title" content="WRF Namelist Generator">
@@ -22,37 +23,80 @@
         
         <!-- Step Navigation -->
         <div class="steps-nav">
-            <div class="step-item active" data-step="1">1</div>
-            <div class="step-item" data-step="2">2</div>
-            <div class="step-item" data-step="3">3</div>
-            <div class="step-item" data-step="4">4</div>
-            <div class="step-item" data-step="5">5</div>
+            <div class="step-item active" data-step="1" data-label="Time">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="step-item" data-step="2" data-label="Domain">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="step-item" data-step="3" data-label="Physics">
+                <i class="fas fa-atom"></i>
+            </div>
+            <div class="step-item" data-step="4" data-label="Dynamics">
+                <i class="fas fa-wind"></i>
+            </div>
+            <div class="step-item" data-step="5" data-label="Review">
+                <i class="fas fa-check"></i>
+            </div>
         </div>
         
         <div class="steps-content">
             <!-- Step 1: Simulation Period -->
             <div class="step-page active" id="step-1">
                 <div class="card">
-                    <h2 class="card-title">Simulation Period</h2>
-                    <p>Define the time span for your WRF simulation. This determines the start and end dates for your forecast or analysis.</p>
+                    <h2 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        Simulation Period
+                    </h2>
+                    <p class="card-description">Define the time span for your WRF simulation. This determines the start and end dates for your forecast or analysis.</p>
                     
                     <div class="form-group">
-                        <label for="start_date" class="form-label">Start Date (YYYY-MM-DD_HH:MM:SS)</label>
-                        <input type="text" class="form-control" id="start_date" name="start_date" value="{{ config.start_date }}">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="start_date" name="start_date" 
+                                   placeholder="YYYY-MM-DD_HH:MM:SS"
+                                   value="{{ config.start_date }}"
+                                   pattern="\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}">
+                            <div class="input-help">
+                                <i class="fas fa-circle-info"></i>
+                                <span class="help-text">Format: YYYY-MM-DD_HH:MM:SS</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="end_date" class="form-label">End Date (YYYY-MM-DD_HH:MM:SS)</label>
-                        <input type="text" class="form-control" id="end_date" name="end_date" value="{{ config.end_date }}">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="end_date" name="end_date" 
+                                   placeholder="YYYY-MM-DD_HH:MM:SS"
+                                   value="{{ config.end_date }}"
+                                   pattern="\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}">
+                            <div class="input-help">
+                                <i class="fas fa-circle-info"></i>
+                                <span class="help-text">Format: YYYY-MM-DD_HH:MM:SS</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="alert alert-info">
-                        The simulation period directly impacts computational resources needed and the accuracy of your forecast.
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Resource Impact</strong>
+                            <p>The simulation period directly impacts computational resources needed and the accuracy of your forecast. Consider these factors when setting the time span:</p>
+                            <ul>
+                                <li>Longer periods require more computational time</li>
+                                <li>Forecast accuracy typically decreases with longer time spans</li>
+                                <li>Historical data availability may limit start dates</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="btn-group">
                         <div></div>
-                        <button type="button" class="btn btn-primary next-step" data-next="2">Next: Domain Setup</button>
+                        <button type="button" class="btn btn-primary next-step" data-next="2">
+                            Next: Domain Setup
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -60,8 +104,11 @@
             <!-- Step 2: Domain Setup -->
             <div class="step-page" id="step-2">
                 <div class="card">
-                    <h2 class="card-title">Domain Setup</h2>
-                    <p>Configure the spatial characteristics of your WRF model domain including resolution, projection, and nesting.</p>
+                    <h2 class="card-title">
+                        <i class="fas fa-globe"></i>
+                        Domain Setup
+                    </h2>
+                    <p class="card-description">Configure the spatial characteristics of your WRF model domain including resolution, projection, and nesting.</p>
                     
                     <div class="form-group">
                         <label for="projection" class="form-label">Map Projection</label>
@@ -70,6 +117,10 @@
                                 <option value="{{ id }}" {% if config.projection == id|int %}selected{% endif %}>{{ name }}</option>
                             {% endfor %}
                         </select>
+                        <div class="input-help">
+                            <i class="fas fa-circle-info"></i>
+                            <span class="help-text">Choose the appropriate map projection for your region</span>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -79,66 +130,92 @@
                                 <option value="{{ i }}" {% if config.domain.max_dom == i %}selected{% endif %}>{{ i }}</option>
                             {% endfor %}
                         </select>
+                        <div class="input-help">
+                            <i class="fas fa-circle-info"></i>
+                            <span class="help-text">Select the number of nested domains (1-3)</span>
+                        </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="e_we" class="form-label">E-W Grid Points</label>
-                            <input type="number" class="form-control" id="e_we" name="domain.e_we" value="{{ config.domain.e_we }}">
+                            <input type="number" class="form-control" id="e_we" name="domain.e_we" 
+                                   value="{{ config.domain.e_we }}" min="1">
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="e_sn" class="form-label">N-S Grid Points</label>
-                            <input type="number" class="form-control" id="e_sn" name="domain.e_sn" value="{{ config.domain.e_sn }}">
+                            <input type="number" class="form-control" id="e_sn" name="domain.e_sn" 
+                                   value="{{ config.domain.e_sn }}" min="1">
                         </div>
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="dx" class="form-label">DX (km)</label>
-                            <input type="number" step="0.1" class="form-control" id="dx" name="domain.dx" value="{{ config.domain.dx }}">
+                            <input type="number" step="0.1" class="form-control" id="dx" name="domain.dx" 
+                                   value="{{ config.domain.dx }}" min="0">
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="dy" class="form-label">DY (km)</label>
-                            <input type="number" step="0.1" class="form-control" id="dy" name="domain.dy" value="{{ config.domain.dy }}">
+                            <input type="number" step="0.1" class="form-control" id="dy" name="domain.dy" 
+                                   value="{{ config.domain.dy }}" min="0">
                         </div>
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="ref_lat" class="form-label">Reference Latitude</label>
-                            <input type="number" step="0.1" class="form-control" id="ref_lat" name="domain.ref_lat" value="{{ config.domain.ref_lat }}">
+                            <input type="number" step="0.1" class="form-control" id="ref_lat" name="domain.ref_lat" 
+                                   value="{{ config.domain.ref_lat }}">
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="ref_lon" class="form-label">Reference Longitude</label>
-                            <input type="number" step="0.1" class="form-control" id="ref_lon" name="domain.ref_lon" value="{{ config.domain.ref_lon }}">
+                            <input type="number" step="0.1" class="form-control" id="ref_lon" name="domain.ref_lon" 
+                                   value="{{ config.domain.ref_lon }}">
                         </div>
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 100%;">
-                            <label for="stand_lon" class="form-label">Standard Longitude</label>
-                            <input type="number" step="0.1" class="form-control" id="stand_lon" name="domain.stand_lon" value="{{ config.domain.stand_lon }}">
-                        </div>
+                    <div class="form-group">
+                        <label for="stand_lon" class="form-label">Standard Longitude</label>
+                        <input type="number" step="0.1" class="form-control" id="stand_lon" name="domain.stand_lon" 
+                               value="{{ config.domain.stand_lon }}">
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="truelat1" class="form-label">True Latitude 1</label>
-                            <input type="number" step="0.1" class="form-control" id="truelat1" name="domain.truelat1" value="{{ config.domain.truelat1 }}">
+                            <input type="number" step="0.1" class="form-control" id="truelat1" name="domain.truelat1" 
+                                   value="{{ config.domain.truelat1 }}">
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="truelat2" class="form-label">True Latitude 2</label>
-                            <input type="number" step="0.1" class="form-control" id="truelat2" name="domain.truelat2" value="{{ config.domain.truelat2 }}">
+                            <input type="number" step="0.1" class="form-control" id="truelat2" name="domain.truelat2" 
+                                   value="{{ config.domain.truelat2 }}">
                         </div>
                     </div>
                     
-                    <div class="alert alert-info" style="clear: both;">
-                        For multi-domain setup, parent grid ratios and starting locations are set automatically based on best practices.
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Domain Configuration</strong>
+                            <p>For multi-domain setup, parent grid ratios and starting locations are set automatically based on best practices. Consider these guidelines:</p>
+                            <ul>
+                                <li>Nested domains should be at least 10 grid points from parent boundaries</li>
+                                <li>Recommended parent-to-nest ratio is 3:1 or 5:1</li>
+                                <li>Higher resolution domains require more computational resources</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary prev-step" data-prev="1">Previous</button>
-                        <button type="button" class="btn btn-primary next-step" data-next="3">Next: Physics Options</button>
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="1">
+                            <i class="fas fa-arrow-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="3">
+                            Next: Physics Options
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -146,30 +223,41 @@
             <!-- Step 3: Physics Options -->
             <div class="step-page" id="step-3">
                 <div class="card">
-                    <h2 class="card-title">Physics Options</h2>
-                    <p>Select the physical parameterization schemes for your simulation.</p>
+                    <h2 class="card-title">
+                        <i class="fas fa-atom"></i>
+                        Physics Options
+                    </h2>
+                    <p class="card-description">Select the physical parameterization schemes for your simulation.</p>
                     
-                    <div class="row">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="mp_physics" class="form-label">Microphysics Scheme</label>
                             <select class="form-select" id="mp_physics" name="physics.mp_physics">
                                 {% for id, name in physics_options.mp_physics.items() %}
                                     <option value="{{ id }}" {% if config.physics.mp_physics == id|int %}selected{% endif %}>{{ name }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="input-help">
+                                <i class="fas fa-circle-info"></i>
+                                <span class="help-text">Controls cloud and precipitation processes</span>
+                            </div>
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="cu_physics" class="form-label">Cumulus Scheme</label>
                             <select class="form-select" id="cu_physics" name="physics.cu_physics">
                                 {% for id, name in physics_options.cu_physics.items() %}
                                     <option value="{{ id }}" {% if config.physics.cu_physics == id|int %}selected{% endif %}>{{ name }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="input-help">
+                                <i class="fas fa-circle-info"></i>
+                                <span class="help-text">Handles convective processes</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="ra_lw_physics" class="form-label">Longwave Radiation Scheme</label>
                             <select class="form-select" id="ra_lw_physics" name="physics.ra_lw_physics">
                                 {% for id, name in physics_options.ra_lw_physics.items() %}
@@ -177,7 +265,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="ra_sw_physics" class="form-label">Shortwave Radiation Scheme</label>
                             <select class="form-select" id="ra_sw_physics" name="physics.ra_sw_physics">
                                 {% for id, name in physics_options.ra_sw_physics.items() %}
@@ -187,8 +275,8 @@
                         </div>
                     </div>
                     
-                    <div class="row" style="clear: both;">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
+                    <div class="form-grid">
+                        <div class="form-group">
                             <label for="sf_surface_physics" class="form-label">Surface Layer Scheme</label>
                             <select class="form-select" id="sf_surface_physics" name="physics.sf_surface_physics">
                                 {% for id, name in physics_options.sf_surface_physics.items() %}
@@ -196,7 +284,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
+                        <div class="form-group">
                             <label for="bl_pbl_physics" class="form-label">PBL Scheme</label>
                             <select class="form-select" id="bl_pbl_physics" name="physics.bl_pbl_physics">
                                 {% for id, name in physics_options.bl_pbl_physics.items() %}
@@ -206,123 +294,126 @@
                         </div>
                     </div>
                     
-                    <div class="alert alert-info" style="clear: both;">
-                        The choice of physics schemes greatly impacts simulation results. Carefully consider which schemes are appropriate for your region and application.
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Physics Scheme Selection</strong>
+                            <p>Choose physics schemes that are appropriate for your region and research goals:</p>
+                            <ul>
+                                <li>Some schemes are more computationally intensive than others</li>
+                                <li>Certain combinations of schemes work better together</li>
+                                <li>Consider the spatial and temporal scales of your phenomena of interest</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary prev-step" data-prev="2">Previous</button>
-                        <button type="button" class="btn btn-primary next-step" data-next="4">Next: Data Source</button>
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="2">
+                            <i class="fas fa-arrow-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="4">
+                            Next: Dynamics Options
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Step 4: Data Source -->
+            <!-- Step 4: Dynamics Options -->
             <div class="step-page" id="step-4">
                 <div class="card">
-                    <h2 class="card-title">Data Source</h2>
-                    <p>Select the meteorological data to initialize your WRF simulation.</p>
+                    <h2 class="card-title">
+                        <i class="fas fa-wind"></i>
+                        Dynamics Options
+                    </h2>
+                    <p class="card-description">Configure the dynamic core settings for your WRF simulation.</p>
                     
-                    <div class="form-group">
-                        <label for="data_source" class="form-label">Data Source</label>
-                        <select class="form-select" id="data_source" name="data_source">
-                            {% for id, name in data_sources.items() %}
-                                <option value="{{ id }}" {% if config.data_source == id %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div id="era5-settings" class="data-source-settings" style="display: none;">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label for="cds_api_key" class="form-label">CDS API Key</label>
-                            <input type="text" class="form-control" id="cds_api_key" name="user_settings.cds_api_key" value="{{ config.user_settings.cds_api_key }}">
+                            <label for="diff_opt" class="form-label">Diffusion Option</label>
+                            <select class="form-select" id="diff_opt" name="dynamics.diff_opt">
+                                {% for id, name in dynamics_options.diff_opt.items() %}
+                                    <option value="{{ id }}" {% if config.dynamics.diff_opt == id|int %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="cds_api_url" class="form-label">CDS API URL</label>
-                            <input type="text" class="form-control" id="cds_api_url" name="user_settings.cds_api_url" value="{{ config.user_settings.cds_api_url }}">
+                            <label for="km_opt" class="form-label">Eddy Coefficient Option</label>
+                            <select class="form-select" id="km_opt" name="dynamics.km_opt">
+                                {% for id, name in dynamics_options.km_opt.items() %}
+                                    <option value="{{ id }}" {% if config.dynamics.km_opt == id|int %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     
                     <div class="alert alert-info">
-                        GFS data is freely available with global coverage. ERA5 provides reanalysis data with higher accuracy but requires a CDS API key.
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Dynamics Configuration</strong>
+                            <p>The dynamics options control how the model handles:</p>
+                            <ul>
+                                <li>Numerical diffusion and stability</li>
+                                <li>Turbulent mixing processes</li>
+                                <li>Model dynamics and computational efficiency</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary prev-step" data-prev="3">Previous</button>
-                        <button type="button" class="btn btn-primary next-step" data-next="5">Next: Output Settings</button>
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="3">
+                            <i class="fas fa-arrow-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="5">
+                            Next: Review Configuration
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Step 5: Settings -->
+            <!-- Step 5: Review and Generate -->
             <div class="step-page" id="step-5">
                 <div class="card">
-                    <h2 class="card-title">Output Settings</h2>
-                    <p>Configure where files will be stored and specify paths to WRF components.</p>
+                    <h2 class="card-title">
+                        <i class="fas fa-check"></i>
+                        Review Configuration
+                    </h2>
+                    <p class="card-description">Review your configuration settings before generating the namelist files.</p>
                     
-                    <div class="form-group">
-                        <label for="output_dir" class="form-label">Output Directory</label>
-                        <input type="text" class="form-control" id="output_dir" name="output_dir" value="{{ config.output_dir }}">
+                    <div id="config-summary">
+                        <!-- This will be populated by JavaScript -->
                     </div>
                     
-                    <div class="form-group">
-                        <label for="geog_data_path" class="form-label">WPS Geography Data Path</label>
-                        <input type="text" class="form-control" id="geog_data_path" name="user_settings.geog_data_path" value="{{ config.user_settings.geog_data_path }}">
-                    </div>
-                    
-                    <div class="row">
-                        <div class="form-group" style="width: 48%; float: left; margin-right: 4%;">
-                            <label for="wps_path" class="form-label">WPS Directory</label>
-                            <input type="text" class="form-control" id="wps_path" name="user_settings.wps_path" value="{{ config.user_settings.wps_path }}">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Before Generating</strong>
+                            <p>Please verify that:</p>
+                            <ul>
+                                <li>All required fields are filled correctly</li>
+                                <li>The domain configuration is appropriate for your study area</li>
+                                <li>The selected physics schemes are compatible</li>
+                            </ul>
                         </div>
-                        <div class="form-group" style="width: 48%; float: left;">
-                            <label for="wrf_path" class="form-label">WRF Directory</label>
-                            <input type="text" class="form-control" id="wrf_path" name="user_settings.wrf_path" value="{{ config.user_settings.wrf_path }}">
-                        </div>
                     </div>
                     
-                    <div class="alert alert-info" style="clear: both;">
-                        Ensure all directories exist and have appropriate permissions before generating files.
+                    <div id="result-section" style="display: none;">
+                        <h3>Generated Files</h3>
+                        <ul id="result-messages"></ul>
                     </div>
                     
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary prev-step" data-prev="4">Previous</button>
-                        <button type="button" id="generate-btn" class="btn btn-primary">Generate WRF Files</button>
-                    </div>
-                </div>
-                
-                <!-- Results Section (Initially Hidden) -->
-                <div id="result-section" style="display: none;">
-                    <div class="card">
-                        <h2 class="card-title">Generation Results</h2>
-                        
-                        <div id="result-messages"></div>
-                        
-                        <h3>Files Generated Successfully</h3>
-                        <p>The following files have been created in your output directory:</p>
-                        
-                        <div class="file-list">
-                            <div class="file-item">
-                                <span>namelist.wps</span>
-                                <a href="#" class="download-link" data-file="namelist.wps">Download</a>
-                            </div>
-                            <div class="file-item">
-                                <span>namelist.input</span>
-                                <a href="#" class="download-link" data-file="namelist.input">Download</a>
-                            </div>
-                            <div class="file-item">
-                                <span>download_data.sh</span>
-                                <a href="#" class="download-link" data-file="download_data.sh">Download</a>
-                            </div>
-                            <div class="file-item">
-                                <span>run_wrf.sh</span>
-                                <a href="#" class="download-link" data-file="run_wrf.sh">Download</a>
-                            </div>
-                        </div>
-                        
-                        <div class="alert alert-info">
-                            Output Directory: <span id="output-dir-path"></span>
-                        </div>
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="4">
+                            <i class="fas fa-arrow-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" id="generate-btn">
+                            Generate Namelist Files
+                            <i class="fas fa-file-export"></i>
+                        </button>
                     </div>
                 </div>
             </div>
