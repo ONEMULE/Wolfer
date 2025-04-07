@@ -196,18 +196,28 @@ def get_html_template():
 
 class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        # 初始化消息队列
-        self.queue = queue.Queue()
+        # 创建消息队列，但必须先调用父类的初始化
         super().__init__(*args, **kwargs)
+        
+    def initialize_queue(self):
+        """确保队列已初始化"""
+        if not hasattr(self, 'queue'):
+            self.queue = queue.Queue()
+        return self.queue
         
     def queue_put(self, message):
         """安全地将消息放入队列"""
         try:
-            self.queue.put(message)
-        except Exception:
-            print(f"消息队列错误: {message}")
-            
+            queue = self.initialize_queue()
+            queue.put(message)
+            print(f"消息日志: {message}")  # 在控制台也显示消息
+        except Exception as e:
+            print(f"消息队列错误 ({str(e)}): {message}")
+    
     def do_GET(self):
+        # 确保队列已初始化
+        self.initialize_queue()
+        
         # 解析路径
         parsed_path = urllib.parse.urlparse(self.path)
         
@@ -898,6 +908,9 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
     def do_POST(self):
+        # 确保队列已初始化
+        self.initialize_queue()
+        
         # 生成文件API
         if self.path == '/generate':
             # 获取POST数据长度
@@ -925,11 +938,11 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
             
             try:
-                # 创建消息队列
-                message_queue = queue.Queue()
+                # 使用处理程序的消息队列
+                self.queue_put("开始生成配置文件...")
                 
                 # 创建生成器
-                generator = WRFGenerator(config, message_queue)
+                generator = WRFGenerator(config, self)
                 
                 # 生成文件
                 generator_thread = threading.Thread(target=generator.generate_all)
@@ -938,8 +951,9 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
                 
                 # 收集消息
                 messages = []
-                while not message_queue.empty():
-                    messages.append(message_queue.get())
+                queue = self.initialize_queue()
+                while not queue.empty():
+                    messages.append(queue.get())
                 
                 # 返回成功响应
                 self.send_response(200)

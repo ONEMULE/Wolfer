@@ -23,22 +23,33 @@ class WRFGenerator:
         self.config = config
         self.queue = message_queue
         
+        # 检查message_queue的类型，确定如何发送消息
+        if hasattr(message_queue, 'queue_put'):
+            # 如果是WRFRequestHandler对象
+            self.queue_put = message_queue.queue_put
+        elif hasattr(message_queue, 'put'):
+            # 如果是普通Queue对象
+            self.queue_put = message_queue.put
+        else:
+            # 兜底方案，创建一个空函数
+            self.queue_put = lambda msg: print(f"消息: {msg}")
+        
         # 确保output_dir是绝对路径且存在
         if not self.config.get("output_dir") or self.config["output_dir"].strip() == "":
             self.config["output_dir"] = os.path.join(os.path.expanduser("~"), "wrf_run")
-            self.queue.put(f"使用默认输出目录: {self.config['output_dir']}")
+            self.queue_put(f"使用默认输出目录: {self.config['output_dir']}")
         elif not os.path.isabs(self.config["output_dir"]):
             # 转换为绝对路径
             self.config["output_dir"] = os.path.abspath(self.config["output_dir"])
-            self.queue.put(f"输出目录已转换为绝对路径: {self.config['output_dir']}")
+            self.queue_put(f"输出目录已转换为绝对路径: {self.config['output_dir']}")
         
         # 确保输出目录存在
         if not os.path.exists(self.config["output_dir"]):
             try:
                 os.makedirs(self.config["output_dir"])
-                self.queue.put(f"创建输出目录: {self.config['output_dir']}")
+                self.queue_put(f"创建输出目录: {self.config['output_dir']}")
             except Exception as e:
-                self.queue.put(f"错误: 无法创建输出目录 {self.config['output_dir']}: {str(e)}")
+                self.queue_put(f"错误: 无法创建输出目录 {self.config['output_dir']}: {str(e)}")
 
     def generate_all(self):
         """Generate all required files"""
@@ -47,25 +58,25 @@ class WRFGenerator:
             if not os.path.exists(self.config["output_dir"]):
                 os.makedirs(self.config["output_dir"])
 
-            self.queue.put("Generating namelist.wps...")
+            self.queue_put("Generating namelist.wps...")
             self.generate_namelist_wps()
             time.sleep(0.5)  # Small delay for UI responsiveness
 
-            self.queue.put("Generating namelist.input...")
+            self.queue_put("Generating namelist.input...")
             self.generate_namelist_input()
             time.sleep(0.5)
 
-            self.queue.put("Generating download script...")
+            self.queue_put("Generating download script...")
             self.generate_download_script()
             time.sleep(0.5)
 
-            self.queue.put("Generating run script...")
+            self.queue_put("Generating run script...")
             self.generate_run_script()
             time.sleep(0.5)
 
-            self.queue.put("File generation complete!")
+            self.queue_put("File generation complete!")
         except Exception as e:
-            self.queue.put(f"Error: {str(e)}")
+            self.queue_put(f"Error: {str(e)}")
 
     def generate_namelist_wps(self):
         """Generate namelist.wps file"""
@@ -873,4 +884,12 @@ class WRFGenerator:
             3: "mercator",
             6: "lat-lon"
         }
-        return proj_map.get(self.config["domain"]["projection"], "lambert")
+        # 检查projection是在顶层还是在domain字典中
+        if "projection" in self.config:
+            projection = self.config["projection"]
+        elif "projection" in self.config.get("domain", {}):
+            projection = self.config["domain"]["projection"]
+        else:
+            projection = 1  # 默认使用lambert投影
+            
+        return proj_map.get(projection, "lambert")

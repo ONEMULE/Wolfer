@@ -426,48 +426,36 @@ document.addEventListener('DOMContentLoaded', function() {
                         // 设置namelist.wps下载链接
                         const downloadWpsBtn = document.getElementById('download-wps');
                         if (downloadWpsBtn && data.download_links.namelist_wps) {
-                            downloadWpsBtn.href = data.download_links.namelist_wps || '/download/namelist.wps';
-                            downloadWpsBtn.onclick = (e) => { 
-                                e.preventDefault(); 
-                                window.location.href = downloadWpsBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
-                            };
+                            downloadWpsBtn.href = data.download_links.namelist_wps;
+                            downloadWpsBtn.onclick = null;
                         }
                         
                         // 设置namelist.input下载链接
                         const downloadInputBtn = document.getElementById('download-input');
                         if (downloadInputBtn && data.download_links.namelist_input) {
-                            downloadInputBtn.href = data.download_links.namelist_input || '/download/namelist.input';
-                            downloadInputBtn.onclick = (e) => { 
-                                e.preventDefault(); 
-                                window.location.href = downloadInputBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
-                            };
+                            downloadInputBtn.href = data.download_links.namelist_input;
+                            downloadInputBtn.onclick = null;
                         }
                         
                         // 设置下载脚本链接
                         const downloadScriptBtn = document.getElementById('download-script');
                         if (downloadScriptBtn && data.download_links.download_script) {
-                            downloadScriptBtn.href = data.download_links.download_script || '/download/download_data.sh';
-                            downloadScriptBtn.onclick = (e) => { 
-                                e.preventDefault(); 
-                                window.location.href = downloadScriptBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
-                            };
+                            downloadScriptBtn.href = data.download_links.download_script;
+                            downloadScriptBtn.onclick = null;
                         }
                         
                         // 设置运行脚本链接
                         const downloadRunBtn = document.getElementById('download-run');
                         if (downloadRunBtn && data.download_links.run_script) {
-                            downloadRunBtn.href = data.download_links.run_script || '/download/run_wrf.sh';
-                            downloadRunBtn.onclick = (e) => { 
-                                e.preventDefault(); 
-                                window.location.href = downloadRunBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
-                            };
+                            downloadRunBtn.href = data.download_links.run_script;
+                            downloadRunBtn.onclick = null;
                         }
                     }
                     
                     // 加载namelist预览
                     loadNamelistPreview(
-                        `/download/namelist.wps?output_dir=${encodeURIComponent(data.output_dir)}`,
-                        `/download/namelist.input?output_dir=${encodeURIComponent(data.output_dir)}`
+                        data.download_links.namelist_wps,
+                        data.download_links.namelist_input
                     );
                     
                     showNotification('文件生成成功！', 'success');
