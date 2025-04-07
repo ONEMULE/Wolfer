@@ -405,45 +405,74 @@ document.addEventListener('DOMContentLoaded', function() {
                         resultSection.scrollIntoView({ behavior: 'smooth' });
                     }
                     
-                    // 显示输出目录
+                    // 更新输出目录路径
                     if (outputDirPath) {
-                        outputDirPath.textContent = data.output_dir;
+                        outputDirPath.textContent = data.output_dir || '未指定目录';
                     }
                     
-                    // 显示消息列表
-                    if (resultMessages) {
-                        let messageList = '';
-                        data.messages.forEach(message => {
-                            let messageClass = 'info';
-                            if (message.includes('Error') || message.includes('错误')) {
-                                messageClass = 'error';
-                            } else if (message.includes('complete') || message.includes('完成')) {
-                                messageClass = 'success';
-                            }
-                            messageList += `<div class="message ${messageClass}">${message}</div>`;
+                    // 显示消息
+                    if (resultMessages && data.messages) {
+                        let messagesHtml = '';
+                        data.messages.forEach(msg => {
+                            const messageType = msg.includes('错误') ? 'error' : 
+                                               (msg.includes('完成') ? 'success' : 'info');
+                            messagesHtml += `<div class="message ${messageType}">${msg}</div>`;
                         });
-                        resultMessages.innerHTML = messageList;
+                        resultMessages.innerHTML = messagesHtml;
                     }
                     
                     // 设置下载链接
                     if (data.download_links) {
-                        const downloadWps = document.getElementById('download-wps');
-                        const downloadInput = document.getElementById('download-input');
-                        const downloadScript = document.getElementById('download-script');
-                        const downloadRun = document.getElementById('download-run');
+                        // 设置namelist.wps下载链接
+                        const downloadWpsBtn = document.getElementById('download-wps');
+                        if (downloadWpsBtn && data.download_links.namelist_wps) {
+                            downloadWpsBtn.href = data.download_links.namelist_wps || '/download/namelist.wps';
+                            downloadWpsBtn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                window.location.href = downloadWpsBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
+                            };
+                        }
                         
-                        if (downloadWps) downloadWps.href = data.download_links['namelist.wps'];
-                        if (downloadInput) downloadInput.href = data.download_links['namelist.input'];
-                        if (downloadScript) downloadScript.href = data.download_links['download_script'];
-                        if (downloadRun) downloadRun.href = data.download_links['run_script'];
+                        // 设置namelist.input下载链接
+                        const downloadInputBtn = document.getElementById('download-input');
+                        if (downloadInputBtn && data.download_links.namelist_input) {
+                            downloadInputBtn.href = data.download_links.namelist_input || '/download/namelist.input';
+                            downloadInputBtn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                window.location.href = downloadInputBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
+                            };
+                        }
                         
-                        // 加载预览内容
-                        loadNamelistPreview(data.download_links['namelist.wps'], data.download_links['namelist.input']);
+                        // 设置下载脚本链接
+                        const downloadScriptBtn = document.getElementById('download-script');
+                        if (downloadScriptBtn && data.download_links.download_script) {
+                            downloadScriptBtn.href = data.download_links.download_script || '/download/download_data.sh';
+                            downloadScriptBtn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                window.location.href = downloadScriptBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
+                            };
+                        }
+                        
+                        // 设置运行脚本链接
+                        const downloadRunBtn = document.getElementById('download-run');
+                        if (downloadRunBtn && data.download_links.run_script) {
+                            downloadRunBtn.href = data.download_links.run_script || '/download/run_wrf.sh';
+                            downloadRunBtn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                window.location.href = downloadRunBtn.href + `?output_dir=${encodeURIComponent(data.output_dir)}`;
+                            };
+                        }
                     }
+                    
+                    // 加载namelist预览
+                    loadNamelistPreview(
+                        `/download/namelist.wps?output_dir=${encodeURIComponent(data.output_dir)}`,
+                        `/download/namelist.input?output_dir=${encodeURIComponent(data.output_dir)}`
+                    );
                     
                     showNotification('文件生成成功！', 'success');
                 } else {
-                    showNotification(`生成失败: ${data.error}`, 'error');
+                    showNotification(data.error || '生成文件时出错', 'error');
                 }
             })
             .catch(error => {

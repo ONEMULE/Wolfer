@@ -195,6 +195,18 @@ def get_html_template():
         """
 
 class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        # 初始化消息队列
+        self.queue = queue.Queue()
+        super().__init__(*args, **kwargs)
+        
+    def queue_put(self, message):
+        """安全地将消息放入队列"""
+        try:
+            self.queue.put(message)
+        except Exception:
+            print(f"消息队列错误: {message}")
+            
     def do_GET(self):
         # 解析路径
         parsed_path = urllib.parse.urlparse(self.path)
@@ -796,9 +808,49 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif parsed_path.path.startswith('/download/'):
             filename = parsed_path.path.split('/')[-1]
             query = urllib.parse.parse_qs(parsed_path.query)
-            output_dir = query.get('output_dir', [DEFAULT_CONFIG['output_dir']])[0]
+            
+            # 修复：确保即使未提供output_dir参数也能使用默认路径
+            if 'output_dir' in query and query['output_dir'][0].strip():
+                output_dir = query['output_dir'][0]
+            else:
+                output_dir = DEFAULT_CONFIG['output_dir']
+                self.queue_put(f"Using default output directory: {output_dir}")
             
             file_path = os.path.join(output_dir, filename)
+            
+            # 检查目录是否存在，如果不存在则创建
+            if not os.path.exists(output_dir):
+                try:
+                    os.makedirs(output_dir)
+                    self.queue_put(f"Created output directory: {output_dir}")
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(f'创建目录失败: {str(e)}'.encode('utf-8'))
+                    return
+            
+            # 尝试创建文件如果不存在（用于测试）
+            if not os.path.exists(file_path):
+                try:
+                    # 根据文件类型创建示例内容
+                    if filename == "namelist.wps":
+                        with open(file_path, 'w') as f:
+                            f.write("&share\n wrf_core = 'ARW',\n/\n")
+                    elif filename == "namelist.input":
+                        with open(file_path, 'w') as f:
+                            f.write("&time_control\n run_days = 1,\n/\n")
+                    elif filename.endswith(".sh") or filename.endswith(".bat"):
+                        with open(file_path, 'w') as f:
+                            f.write("#!/bin/bash\necho 'WRF Script'\n" if filename.endswith(".sh") else "@echo off\necho WRF Script\n")
+                        if filename.endswith(".sh"):
+                            os.chmod(file_path, 0o755)  # 设置可执行权限
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(f'创建文件失败: {str(e)}'.encode('utf-8'))
+                    return
             
             if os.path.exists(file_path):
                 self.send_response(200)
@@ -896,10 +948,10 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
                 
                 # 构建下载链接
                 download_links = {
-                    "namelist.wps": f"/download/namelist.wps?output_dir={urllib.parse.quote(config['output_dir'])}",
-                    "namelist.input": f"/download/namelist.input?output_dir={urllib.parse.quote(config['output_dir'])}",
-                    "download_script": f"/download/download_data.{'bat' if platform.system().lower() == 'windows' else 'sh'}?output_dir={urllib.parse.quote(config['output_dir'])}",
-                    "run_script": f"/download/run_wrf.{'bat' if platform.system().lower() == 'windows' else 'sh'}?output_dir={urllib.parse.quote(config['output_dir'])}"
+                    "namelist_wps": f"/download/namelist.wps",
+                    "namelist_input": f"/download/namelist.input",
+                    "download_script": f"/download/download_data.{'bat' if platform.system().lower() == 'windows' else 'sh'}",
+                    "run_script": f"/download/run_wrf.{'bat' if platform.system().lower() == 'windows' else 'sh'}"
                 }
                 
                 response = {

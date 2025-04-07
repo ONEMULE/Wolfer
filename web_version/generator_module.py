@@ -22,6 +22,23 @@ class WRFGenerator:
     def __init__(self, config, message_queue):
         self.config = config
         self.queue = message_queue
+        
+        # 确保output_dir是绝对路径且存在
+        if not self.config.get("output_dir") or self.config["output_dir"].strip() == "":
+            self.config["output_dir"] = os.path.join(os.path.expanduser("~"), "wrf_run")
+            self.queue.put(f"使用默认输出目录: {self.config['output_dir']}")
+        elif not os.path.isabs(self.config["output_dir"]):
+            # 转换为绝对路径
+            self.config["output_dir"] = os.path.abspath(self.config["output_dir"])
+            self.queue.put(f"输出目录已转换为绝对路径: {self.config['output_dir']}")
+        
+        # 确保输出目录存在
+        if not os.path.exists(self.config["output_dir"]):
+            try:
+                os.makedirs(self.config["output_dir"])
+                self.queue.put(f"创建输出目录: {self.config['output_dir']}")
+            except Exception as e:
+                self.queue.put(f"错误: 无法创建输出目录 {self.config['output_dir']}: {str(e)}")
 
     def generate_all(self):
         """Generate all required files"""
