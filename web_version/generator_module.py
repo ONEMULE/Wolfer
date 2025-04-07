@@ -65,47 +65,62 @@ class WRFGenerator:
         content += f" max_dom = {self.config['domain']['max_dom']},\n"
 
         # Create start_date and end_date strings for each domain
-        start_dates = ", ".join([f"'{start_date_str}'" for _ in range(self.config['domain']['max_dom'])])
-        end_dates = ", ".join([f"'{end_date_str}'" for _ in range(self.config['domain']['max_dom'])])
+        if self.config['domain']['max_dom'] > 1:
+            start_dates = ", ".join([f"'{start_date_str}'" for _ in range(self.config['domain']['max_dom'])])
+            end_dates = ", ".join([f"'{end_date_str}'" for _ in range(self.config['domain']['max_dom'])])
+        else:
+            start_dates = f"'{start_date_str}'"
+            end_dates = f"'{end_date_str}'"
 
         content += f" start_date = {start_dates},\n"
         content += f" end_date = {end_dates},\n"
-        content += f" interval_seconds = {3600 if self.config['data_source'] == 'ERA5' else 21600},\n"
-        content += " io_form_geogrid = 2,\n"
+        content += f" interval_seconds = {3600 if self.config['data_source'] == 'ERA5' else 10800},\n"
+        content += " io_form_geogrid = 102,\n"
         content += "/\n\n"
 
         content += "&geogrid\n"
 
-        # Create parent_id string
-        parent_ids = ", ".join(['1'] + [str(i) for i in range(1, self.config['domain']['max_dom'])])
-        content += f" parent_id = {parent_ids},\n"
+        # Format arrays differently depending on whether it's a single or multi-domain setup
+        if self.config['domain']['max_dom'] > 1:
+            # Create parent_id string
+            parent_ids = ", ".join(['1'] + [str(i) for i in range(1, self.config['domain']['max_dom'])])
+            content += f" parent_id = {parent_ids},\n"
 
-        # Create parent_grid_ratio string
-        grid_ratios = ", ".join([str(r) for r in self.config['domain']['parent_grid_ratio'][:self.config['domain']['max_dom']]])
-        content += f" parent_grid_ratio = {grid_ratios},\n"
+            # Create parent_grid_ratio string
+            grid_ratios = ", ".join([str(r) for r in self.config['domain']['parent_grid_ratio'][:self.config['domain']['max_dom']]])
+            content += f" parent_grid_ratio = {grid_ratios},\n"
 
-        # Create i_parent_start string
-        i_starts = ", ".join([str(i) for i in self.config['domain']['i_parent_start'][:self.config['domain']['max_dom']]])
-        content += f" i_parent_start = {i_starts},\n"
+            # Create i_parent_start string
+            i_starts = ", ".join([str(i) for i in self.config['domain']['i_parent_start'][:self.config['domain']['max_dom']]])
+            content += f" i_parent_start = {i_starts},\n"
 
-        # Create j_parent_start string
-        j_starts = ", ".join([str(j) for j in self.config['domain']['j_parent_start'][:self.config['domain']['max_dom']]])
-        content += f" j_parent_start = {j_starts},\n"
+            # Create j_parent_start string
+            j_starts = ", ".join([str(j) for j in self.config['domain']['j_parent_start'][:self.config['domain']['max_dom']]])
+            content += f" j_parent_start = {j_starts},\n"
 
-        # Calculate e_we and e_sn for each domain
-        e_we_values = [str(self.config['domain']['e_we'])]
-        e_sn_values = [str(self.config['domain']['e_sn'])]
+            # Calculate e_we and e_sn for each domain
+            e_we_values = [str(self.config['domain']['e_we'])]
+            e_sn_values = [str(self.config['domain']['e_sn'])]
 
-        for r in self.config['domain']['parent_grid_ratio'][1:self.config['domain']['max_dom']]:
-            e_we_values.append(str(int(self.config['domain']['e_we']/3*r)))
-            e_sn_values.append(str(int(self.config['domain']['e_sn']/3*r)))
+            for r in self.config['domain']['parent_grid_ratio'][1:self.config['domain']['max_dom']]:
+                e_we_values.append(str(int(self.config['domain']['e_we']/3*r)))
+                e_sn_values.append(str(int(self.config['domain']['e_sn']/3*r)))
 
-        content += f" e_we = {', '.join(e_we_values)},\n"
-        content += f" e_sn = {', '.join(e_sn_values)},\n"
+            content += f" e_we = {', '.join(e_we_values)},\n"
+            content += f" e_sn = {', '.join(e_sn_values)},\n"
 
-        # Create geog_data_res string
-        geog_data_res = ", ".join(['"default"' for _ in range(self.config['domain']['max_dom'])])
-        content += f" geog_data_res = {geog_data_res},\n"
+            # Create geog_data_res string
+            geog_data_res = ", ".join(['"default"' for _ in range(self.config['domain']['max_dom'])])
+            content += f" geog_data_res = {geog_data_res},\n"
+        else:
+            # For single domain, use simpler format like in the example
+            content += f" parent_id = 1,\n"
+            content += f" parent_grid_ratio = 1,\n" 
+            content += f" i_parent_start = 1,\n" 
+            content += f" j_parent_start = 1,\n"
+            content += f" e_we = {self.config['domain']['e_we']},\n"
+            content += f" e_sn = {self.config['domain']['e_sn']},\n"
+            content += f" geog_data_res = 'default',\n"
 
         content += f" dx = {self.config['domain']['dx'] * 1000},\n"  # Convert km to m
         content += f" dy = {self.config['domain']['dy'] * 1000},\n"  # Convert km to m
@@ -115,7 +130,7 @@ class WRFGenerator:
         content += f" truelat1 = {self.config['domain']['truelat1']},\n"
         content += f" truelat2 = {self.config['domain']['truelat2']},\n"
         content += f" stand_lon = {self.config['domain']['stand_lon']},\n"
-        content += f" geog_data_path = '{self.config['user_settings'].get('geog_data_path', '')}',\n"
+        content += f" geog_data_path = '{self.config['user_settings'].get('geog_data_path', '/home/onemule/WRF/run/geo_data/geog_high_res_mandatory/WPS_GEOG')}'\n"
         content += "/\n\n"
 
         content += "&ungrib\n"
@@ -125,7 +140,7 @@ class WRFGenerator:
 
         content += "&metgrid\n"
         content += " fg_name = 'FILE',\n"
-        content += " io_form_metgrid = 2,\n"
+        content += " io_form_metgrid = 102,\n"
         content += "/\n"
 
         # Write to file
@@ -166,160 +181,244 @@ class WRFGenerator:
         # Create date parameter strings for each domain
         max_dom = self.config['domain']['max_dom']
 
-        # Create comma-separated lists for each date parameter
-        start_years = ", ".join([str(start_year) for _ in range(max_dom)])
-        start_months = ", ".join([str(start_month) for _ in range(max_dom)])
-        start_days = ", ".join([str(start_day) for _ in range(max_dom)])
-        start_hours = ", ".join([str(start_hour) for _ in range(max_dom)])
-        start_minutes = ", ".join([str(start_minute) for _ in range(max_dom)])
-        start_seconds = ", ".join([str(start_second) for _ in range(max_dom)])
+        # Format differs for single vs multi-domain
+        if max_dom > 1:
+            # Create comma-separated lists for each date parameter
+            start_years = ", ".join([str(start_year) for _ in range(max_dom)])
+            start_months = ", ".join([str(start_month) for _ in range(max_dom)])
+            start_days = ", ".join([str(start_day) for _ in range(max_dom)])
+            start_hours = ", ".join([str(start_hour) for _ in range(max_dom)])
+            start_minutes = ", ".join([str(start_minute) for _ in range(max_dom)])
+            start_seconds = ", ".join([str(start_second) for _ in range(max_dom)])
 
-        end_years = ", ".join([str(end_year) for _ in range(max_dom)])
-        end_months = ", ".join([str(end_month) for _ in range(max_dom)])
-        end_days = ", ".join([str(end_day) for _ in range(max_dom)])
-        end_hours = ", ".join([str(end_hour) for _ in range(max_dom)])
-        end_minutes = ", ".join([str(end_minute) for _ in range(max_dom)])
-        end_seconds = ", ".join([str(end_second) for _ in range(max_dom)])
+            end_years = ", ".join([str(end_year) for _ in range(max_dom)])
+            end_months = ", ".join([str(end_month) for _ in range(max_dom)])
+            end_days = ", ".join([str(end_day) for _ in range(max_dom)])
+            end_hours = ", ".join([str(end_hour) for _ in range(max_dom)])
+            end_minutes = ", ".join([str(end_minute) for _ in range(max_dom)])
+            end_seconds = ", ".join([str(end_second) for _ in range(max_dom)])
 
-        content += f" start_year = {start_years},\n"
-        content += f" start_month = {start_months},\n"
-        content += f" start_day = {start_days},\n"
-        content += f" start_hour = {start_hours},\n"
-        content += f" start_minute = {start_minutes},\n"
-        content += f" start_second = {start_seconds},\n"
-        content += f" end_year = {end_years},\n"
-        content += f" end_month = {end_months},\n"
-        content += f" end_day = {end_days},\n"
-        content += f" end_hour = {end_hours},\n"
-        content += f" end_minute = {end_minutes},\n"
-        content += f" end_second = {end_seconds},\n"
-        content += f" interval_seconds = {3600 if self.config['data_source'] == 'ERA5' else 21600},\n"
+            content += f" start_year = {start_years},\n"
+            content += f" start_month = {start_months},\n"
+            content += f" start_day = {start_days},\n"
+            content += f" start_hour = {start_hours},\n"
+            content += f" start_minute = {start_minutes},\n"
+            content += f" start_second = {start_seconds},\n"
+            content += f" end_year = {end_years},\n"
+            content += f" end_month = {end_months},\n"
+            content += f" end_day = {end_days},\n"
+            content += f" end_hour = {end_hours},\n"
+            content += f" end_minute = {end_minutes},\n"
+            content += f" end_second = {end_seconds},\n"
+        else:
+            # For single domain use simplified format
+            content += f" start_year = {start_year},\n"
+            content += f" start_month = {start_month},\n"
+            content += f" start_day = {start_day},\n"
+            content += f" start_hour = {start_hour},\n"
+            content += f" end_year = {end_year},\n"
+            content += f" end_month = {end_month},\n"
+            content += f" end_day = {end_day},\n"
+            content += f" end_hour = {end_hour},\n"
+
+        content += f" interval_seconds = {3600 if self.config['data_source'] == 'ERA5' else 10800}\n"
 
         # Create arrays for other parameters
-        input_from_file = ", ".join([".true." for _ in range(max_dom)])
-        history_interval = ", ".join(["60" for _ in range(max_dom)])
-        frames_per_outfile = ", ".join(["1" for _ in range(max_dom)])
+        if max_dom > 1:
+            input_from_file = ", ".join([".true." for _ in range(max_dom)])
+            history_interval = ", ".join(["30" for _ in range(max_dom)])
+            frames_per_outfile = ", ".join(["1000" for _ in range(max_dom)])
 
-        content += f" input_from_file = {input_from_file},\n"
-        content += f" history_interval = {history_interval},\n"
-        content += f" frames_per_outfile = {frames_per_outfile},\n"
+            content += f" input_from_file = {input_from_file},\n"
+            content += f" history_interval = {history_interval},\n"
+            content += f" frames_per_outfile = {frames_per_outfile},\n"
+        else:
+            content += " input_from_file = .true.,\n"
+            content += " history_interval = 30,\n"
+            content += " frames_per_outfile = 1000,\n"
+
         content += " restart = .false.,\n"
         content += " restart_interval = 7200,\n"
-        content += " io_form_history = 2,\n"
-        content += " io_form_restart = 2,\n"
-        content += " io_form_input = 2,\n"
-        content += " io_form_boundary = 2,\n"
-        content += " debug_level = 0\n"
+        content += " io_form_history = 2\n"
+        content += " io_form_restart = 2\n"
+        content += " io_form_input = 2\n"
+        content += " io_form_boundary = 2\n"
         content += "/\n\n"
 
         content += "&domains\n"
         content += f" time_step = {int(self.config['domain']['dx'] * 6)},\n"  # Estimate time step as 6*dx
-        content += f" time_step_fract_num = 0,\n"
-        content += f" time_step_fract_den = 1,\n"
-        content += f" max_dom = {self.config['domain']['max_dom']},\n"
+        content += " time_step_fract_num = 0,\n"
+        content += " time_step_fract_den = 1,\n"
+        content += f" max_dom = {max_dom},\n"
 
         # Calculate e_we and e_sn for each domain
-        e_we_values = [str(self.config['domain']['e_we'])]
-        e_sn_values = [str(self.config['domain']['e_sn'])]
+        if max_dom > 1:
+            e_we_values = [str(self.config['domain']['e_we'])]
+            e_sn_values = [str(self.config['domain']['e_sn'])]
 
-        for r in self.config['domain']['parent_grid_ratio'][1:self.config['domain']['max_dom']]:
-            e_we_values.append(str(int(self.config['domain']['e_we']/3*r)))
-            e_sn_values.append(str(int(self.config['domain']['e_sn']/3*r)))
+            for r in self.config['domain']['parent_grid_ratio'][1:max_dom]:
+                e_we_values.append(str(int(self.config['domain']['e_we']/3*r)))
+                e_sn_values.append(str(int(self.config['domain']['e_sn']/3*r)))
 
-        content += f" e_we = {', '.join(e_we_values)},\n"
-        content += f" e_sn = {', '.join(e_sn_values)},\n"
+            content += f" e_we = {', '.join(e_we_values)},\n"
+            content += f" e_sn = {', '.join(e_sn_values)},\n"
+        else:
+            content += f" e_we = {self.config['domain']['e_we']},\n"
+            content += f" e_sn = {self.config['domain']['e_sn']},\n"
 
         # Create e_vert string
-        e_vert_values = ", ".join(["33" for _ in range(max_dom)])
-        content += f" e_vert = {e_vert_values},\n"
+        if max_dom > 1:
+            e_vert_values = ", ".join(["45" for _ in range(max_dom)])
+            content += f" e_vert = {e_vert_values},\n"
+        else:
+            content += " e_vert = 45,\n"
 
-        content += f" p_top_requested = 5000,\n"
-        content += f" num_metgrid_levels = {27 if self.config['data_source'] == 'ERA5' else 32},\n"
-        content += f" num_metgrid_soil_levels = 4,\n"
+        content += " dzstretch_s = 1.1\n"
+        content += " p_top_requested = 5000,\n"
+        content += f" num_metgrid_levels = {34 if self.config['data_source'] == 'ERA5' else 34},\n"
+        content += " num_metgrid_soil_levels = 4,\n"
         content += f" dx = {self.config['domain']['dx'] * 1000},\n"  # Convert km to m
         content += f" dy = {self.config['domain']['dy'] * 1000},\n"  # Convert km to m
 
-        # Create grid_id string
-        grid_ids = ", ".join([str(i+1) for i in range(max_dom)])
-        content += f" grid_id = {grid_ids},\n"
+        # Create arrays for domain parameters
+        if max_dom > 1:
+            # Create grid_id string
+            grid_ids = ", ".join([str(i+1) for i in range(max_dom)])
+            content += f" grid_id = {grid_ids},\n"
 
-        # Create parent_id string
-        parent_ids = ", ".join(['1'] + [str(i) for i in range(1, max_dom)])
-        content += f" parent_id = {parent_ids},\n"
+            # Create parent_id string
+            parent_ids = ", ".join(['1'] + [str(i) for i in range(1, max_dom)])
+            content += f" parent_id = {parent_ids},\n"
 
-        # Create i_parent_start string
-        i_starts = ", ".join([str(i) for i in self.config['domain']['i_parent_start'][:max_dom]])
-        content += f" i_parent_start = {i_starts},\n"
+            # Create i_parent_start string
+            i_starts = ", ".join([str(i) for i in self.config['domain']['i_parent_start'][:max_dom]])
+            content += f" i_parent_start = {i_starts},\n"
 
-        # Create j_parent_start string
-        j_starts = ", ".join([str(j) for j in self.config['domain']['j_parent_start'][:max_dom]])
-        content += f" j_parent_start = {j_starts},\n"
+            # Create j_parent_start string
+            j_starts = ", ".join([str(j) for j in self.config['domain']['j_parent_start'][:max_dom]])
+            content += f" j_parent_start = {j_starts},\n"
 
-        # Create parent_grid_ratio string
-        grid_ratios = ", ".join([str(r) for r in self.config['domain']['parent_grid_ratio'][:max_dom]])
-        content += f" parent_grid_ratio = {grid_ratios},\n"
+            # Create parent_grid_ratio string
+            grid_ratios = ", ".join([str(r) for r in self.config['domain']['parent_grid_ratio'][:max_dom]])
+            content += f" parent_grid_ratio = {grid_ratios},\n"
 
-        # Create parent_time_step_ratio string
-        time_step_ratios = ", ".join([str(r) for r in self.config['domain']['parent_time_step_ratio'][:max_dom]])
-        content += f" parent_time_step_ratio = {time_step_ratios},\n"
+            # Create parent_time_step_ratio string
+            time_step_ratios = ", ".join([str(r) for r in self.config['domain']['parent_time_step_ratio'][:max_dom]])
+            content += f" parent_time_step_ratio = {time_step_ratios},\n"
+        else:
+            content += " grid_id = 1,\n"
+            content += " parent_id = 1,\n"
+            content += " i_parent_start = 1,\n"
+            content += " j_parent_start = 1,\n"
+            content += " parent_grid_ratio = 1,\n"
+            content += " parent_time_step_ratio = 1,\n"
 
-        content += f" feedback = 1,\n"
-        content += f" smooth_option = 0\n"
+        content += " feedback = 1,\n"
+        content += " smooth_option = 0\n"
         content += "/\n\n"
 
         content += "&physics\n"
+        content += " physics_suite = 'CONUS'\n"
 
         # Create physics parameter strings
-        mp_physics_values = ", ".join([str(self.config['physics']['mp_physics']) for _ in range(max_dom)])
-        ra_lw_physics_values = ", ".join([str(self.config['physics']['ra_lw_physics']) for _ in range(max_dom)])
-        ra_sw_physics_values = ", ".join([str(self.config['physics']['ra_sw_physics']) for _ in range(max_dom)])
-        sf_sfclay_physics_values = ", ".join(["1" for _ in range(max_dom)])
-        sf_surface_physics_values = ", ".join([str(self.config['physics']['sf_surface_physics']) for _ in range(max_dom)])
-        bl_pbl_physics_values = ", ".join([str(self.config['physics']['bl_pbl_physics']) for _ in range(max_dom)])
-        cu_physics_values = ", ".join([str(self.config['physics']['cu_physics']) for _ in range(max_dom)])
+        if max_dom > 1:
+            mp_physics_values = ", ".join([str(self.config['physics']['mp_physics']) for _ in range(max_dom)])
+            ra_lw_physics_values = ", ".join([str(self.config['physics']['ra_lw_physics']) for _ in range(max_dom)])
+            ra_sw_physics_values = ", ".join([str(self.config['physics']['ra_sw_physics']) for _ in range(max_dom)])
+            sf_sfclay_physics_values = ", ".join(["2" for _ in range(max_dom)])
+            sf_surface_physics_values = ", ".join([str(self.config['physics']['sf_surface_physics']) for _ in range(max_dom)])
+            bl_pbl_physics_values = ", ".join([str(self.config['physics']['bl_pbl_physics']) for _ in range(max_dom)])
+            cu_physics_values = ", ".join([str(self.config['physics']['cu_physics']) for _ in range(max_dom)])
+            radt_values = ", ".join(["15" for _ in range(max_dom)])
+            bldt_values = ", ".join(["0" for _ in range(max_dom)])
+            cudt_values = ", ".join(["0" for _ in range(max_dom)])
+            sf_urban_physics_values = ", ".join(["0" for _ in range(max_dom)])
 
-        content += f" mp_physics = {mp_physics_values},\n"
-        content += f" ra_lw_physics = {ra_lw_physics_values},\n"
-        content += f" ra_sw_physics = {ra_sw_physics_values},\n"
-        content += f" sf_sfclay_physics = {sf_sfclay_physics_values},\n"
-        content += f" sf_surface_physics = {sf_surface_physics_values},\n"
-        content += f" bl_pbl_physics = {bl_pbl_physics_values},\n"
-        content += f" cu_physics = {cu_physics_values},\n"
-        content += " cudt = 5,\n"
-        content += " isfflx = 1,\n"
-        content += " ifsnow = 1,\n"
+            content += f" mp_physics = {mp_physics_values},\n"
+            content += f" cu_physics = {cu_physics_values},\n"
+            content += f" ra_lw_physics = {ra_lw_physics_values},\n"
+            content += f" ra_sw_physics = {ra_sw_physics_values},\n"
+            content += f" bl_pbl_physics = {bl_pbl_physics_values},\n"
+            content += f" sf_sfclay_physics = {sf_sfclay_physics_values},\n"
+            content += f" sf_surface_physics = {sf_surface_physics_values},\n"
+            content += f" radt = {radt_values},\n"
+            content += f" bldt = {bldt_values},\n"
+            content += f" cudt = {cudt_values},\n"
+            content += f" sf_urban_physics = {sf_urban_physics_values},\n"
+        else:
+            content += f" mp_physics = {self.config['physics']['mp_physics']},    8,\n"
+            content += f" cu_physics = {self.config['physics']['cu_physics']},    6,\n"
+            content += f" ra_lw_physics = {self.config['physics']['ra_lw_physics']},    4,\n"
+            content += f" ra_sw_physics = {self.config['physics']['ra_sw_physics']},    4,\n"
+            content += f" bl_pbl_physics = {self.config['physics']['bl_pbl_physics']},    2,\n"
+            content += " sf_sfclay_physics = 2,    2,\n"
+            content += f" sf_surface_physics = {self.config['physics']['sf_surface_physics']},    2,\n"
+            content += " radt = 15,    15,\n"
+            content += " bldt = 0,     0,\n"
+            content += " cudt = 0,     0,\n"
+            content += " sf_urban_physics = 0,     0,\n"
+
         content += " icloud = 1,\n"
-        content += " surface_input_source = 1,\n"
-        content += " num_soil_layers = 4,\n"
         content += " num_land_cat = 21,\n"
+        content += " fractional_seaice = 1,\n"
         content += "/\n\n"
 
         content += "&fdda\n"
         content += "/\n\n"
 
         content += "&dynamics\n"
+        content += " hybrid_opt = 2,\n"
         content += " w_damping = 0,\n"
-        content += " diff_opt = 1,\n"
-        content += " km_opt = 4,\n"
-        content += " diff_6th_opt = 0,\n"
-        content += " diff_6th_factor = 0.12,\n"
-        content += " base_temp = 290.0,\n"
-        content += " damp_opt = 0,\n"
-        content += " zdamp = 5000.0,\n"
-        content += " dampcoef = 0.2,\n"
-        content += " khdif = 0,\n"
-        content += " kvdif = 0,\n"
-        content += " non_hydrostatic = .true.,\n"
-        content += " moist_adv_opt = 1,\n"
-        content += " scalar_adv_opt = 1,\n"
+        
+        if max_dom > 1:
+            diff_opt_values = ", ".join(["2" for _ in range(max_dom)])
+            km_opt_values = ", ".join(["4" for _ in range(max_dom)])
+            diff_6th_opt_values = ", ".join(["0" for _ in range(max_dom)])
+            diff_6th_factor_values = ", ".join(["0.12" for _ in range(max_dom)])
+            zdamp_values = ", ".join(["5000." for _ in range(max_dom)])
+            dampcoef_values = ", ".join(["0.2" for _ in range(max_dom)])
+            khdif_values = ", ".join(["0" for _ in range(max_dom)])
+            kvdif_values = ", ".join(["0" for _ in range(max_dom)])
+            non_hydrostatic_values = ", ".join([".true." for _ in range(max_dom)])
+            moist_adv_opt_values = ", ".join(["1" for _ in range(max_dom)])
+            scalar_adv_opt_values = ", ".join(["1" for _ in range(max_dom)])
+            gwd_opt_values = ", ".join(["1"] + ["0" for _ in range(max_dom-1)])
+            
+            content += f" diff_opt = {diff_opt_values},\n"
+            content += f" km_opt = {km_opt_values},\n"
+            content += f" diff_6th_opt = {diff_6th_opt_values},\n"
+            content += f" diff_6th_factor = {diff_6th_factor_values},\n"
+            content += " base_temp = 290.\n"
+            content += " damp_opt = 3,\n"
+            content += f" zdamp = {zdamp_values},\n"
+            content += f" dampcoef = {dampcoef_values},\n"
+            content += f" khdif = {khdif_values},\n"
+            content += f" kvdif = {kvdif_values},\n"
+            content += f" non_hydrostatic = {non_hydrostatic_values},\n"
+            content += f" moist_adv_opt = {moist_adv_opt_values},\n"
+            content += f" scalar_adv_opt = {scalar_adv_opt_values},\n"
+            content += f" gwd_opt = {gwd_opt_values},\n"
+        else:
+            content += " diff_opt = 2,      2,\n"
+            content += " km_opt = 4,      4,\n"
+            content += " diff_6th_opt = 0,      0,\n"
+            content += " diff_6th_factor = 0.12,   0.12,\n"
+            content += " base_temp = 290.\n"
+            content += " damp_opt = 3,\n"
+            content += " zdamp = 5000.,  5000.,\n"
+            content += " dampcoef = 0.2,    0.2,\n"
+            content += " khdif = 0,      0,\n"
+            content += " kvdif = 0,      0,\n"
+            content += " non_hydrostatic = .true., .true.,\n"
+            content += " moist_adv_opt = 1,      1,\n"
+            content += " scalar_adv_opt = 1,      1,\n"
+            content += " gwd_opt = 1,      0,\n"
+
         content += "/\n\n"
 
         content += "&bdy_control\n"
         content += " spec_bdy_width = 5,\n"
-        content += " spec_zone = 1,\n"
-        content += " relax_zone = 4,\n"
-        content += " specified = .true., .false.,\n"
-        content += " nested = .false., .true.,\n"
+        content += " specified = .true.\n"
         content += "/\n\n"
 
         content += "&grib2\n"

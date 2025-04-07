@@ -20,6 +20,22 @@ document.addEventListener('DOMContentLoaded', function() {
         user_settings: {}
     };
     
+    // 获取嵌套对象中的值
+    function getNestedValue(obj, path) {
+        const keys = path.split('.');
+        let result = obj;
+        
+        for (const key of keys) {
+            if (result && typeof result === 'object' && key in result) {
+                result = result[key];
+            } else {
+                return '';
+            }
+        }
+        
+        return result;
+    }
+    
     // Form validation patterns
     const validationPatterns = {
         date: /^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}$/,
@@ -198,12 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
         configSummary.innerHTML = html;
     }
     
-    // Get nested object value by path
-    function getNestedValue(obj, path) {
-        return path.split('.').reduce((current, key) => 
-            current && current[key] !== undefined ? current[key] : 'Not set', obj);
-    }
-    
     // Next button click handler
     nextButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -234,132 +244,219 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Show/hide ERA5 settings based on data source selection
-    dataSourceSelect.addEventListener('change', function() {
-        if (this.value === 'ERA5') {
-            era5Settings.style.display = 'block';
-        } else {
-            era5Settings.style.display = 'none';
-        }
-    });
-    
-    // Trigger the change event to set initial state
-    dataSourceSelect.dispatchEvent(new Event('change'));
-    
-    // Save form data
-    function saveFormData() {
-        const inputs = document.querySelectorAll('input, select');
-        
-        inputs.forEach(input => {
-            if (input.name) {
-                const nameParts = input.name.split('.');
-                const value = parseFormValue(input.value, input.type);
-                
-                if (nameParts.length === 1) {
-                    // Simple property
-                    formData[nameParts[0]] = value;
+    if (dataSourceSelect) {
+        dataSourceSelect.addEventListener('change', function() {
+            if (era5Settings) {
+                if (this.value === 'ERA5') {
+                    era5Settings.style.display = 'block';
                 } else {
-                    // Nested property
-                    let current = formData;
-                    for (let i = 0; i < nameParts.length - 1; i++) {
-                        if (!current[nameParts[i]]) {
-                            current[nameParts[i]] = {};
-                        }
-                        current = current[nameParts[i]];
-                    }
-                    current[nameParts[nameParts.length - 1]] = value;
+                    era5Settings.style.display = 'none';
                 }
             }
         });
+        
+        // Trigger the change event to set initial state
+        dataSourceSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // Save form data
+    function saveFormData() {
+        // Basic fields
+        formData.start_date = document.getElementById('start_date').value;
+        formData.end_date = document.getElementById('end_date').value;
+        formData.data_source = document.getElementById('data_source').value;
+        formData.projection = parseInt(document.getElementById('projection').value);
+        formData.output_dir = document.getElementById('output_dir') ? document.getElementById('output_dir').value : '';
+        
+        // Domain fields
+        const domainFields = [
+            'e_we', 'e_sn', 'dx', 'dy', 'ref_lat', 'ref_lon', 
+            'truelat1', 'truelat2', 'stand_lon', 'max_dom'
+        ];
+        
+        domainFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                // Convert to number for numeric fields
+                if (field === 'max_dom') {
+                    formData.domain[field] = parseInt(element.value);
+                } else if (['e_we', 'e_sn'].includes(field)) {
+                    formData.domain[field] = parseInt(element.value);
+                } else {
+                    formData.domain[field] = parseFloat(element.value);
+                }
+            }
+        });
+        
+        // Set array fields based on max_dom value
+        const maxDom = formData.domain.max_dom || 1;
+        
+        // Parent grid ratio (default: [1, 3, 3])
+        formData.domain.parent_grid_ratio = [1];
+        for (let i = 1; i < maxDom; i++) {
+            formData.domain.parent_grid_ratio.push(3);
+        }
+        
+        // Parent time step ratio (default: [1, 3, 3])
+        formData.domain.parent_time_step_ratio = [1];
+        for (let i = 1; i < maxDom; i++) {
+            formData.domain.parent_time_step_ratio.push(3);
+        }
+        
+        // i_parent_start (default: [1, 31, 31])
+        formData.domain.i_parent_start = [1];
+        for (let i = 1; i < maxDom; i++) {
+            formData.domain.i_parent_start.push(31);
+        }
+        
+        // j_parent_start (default: [1, 17, 33])
+        formData.domain.j_parent_start = [1];
+        for (let i = 1; i < maxDom; i++) {
+            formData.domain.j_parent_start.push(17 + i * 16);
+        }
+        
+        // Physics fields
+        const physicsFields = [
+            'mp_physics', 'ra_lw_physics', 'ra_sw_physics',
+            'sf_surface_physics', 'bl_pbl_physics', 'cu_physics'
+        ];
+        
+        physicsFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                formData.physics[field] = parseInt(element.value);
+            }
+        });
+        
+        // Dynamics fields
+        const dynamicsFields = ['diff_opt', 'km_opt'];
+        
+        dynamicsFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                formData.dynamics[field] = parseInt(element.value);
+            }
+        });
+        
+        // Add non_hydrostatic field (default: true)
+        formData.dynamics.non_hydrostatic = true;
+        
+        // User settings
+        const userSettingsFields = [
+            'geog_data_path', 'cds_api_key', 'cds_api_url',
+            'wps_path', 'wrf_path'
+        ];
+        
+        userSettingsFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (element) {
+                formData.user_settings[field] = element.value;
+            }
+        });
+        
+        return formData;
     }
     
     // Generate button click handler
-    generateBtn.addEventListener('click', function() {
-        // Validate all steps before generating
-        for (let i = 1; i <= 4; i++) {
-            if (!validateStep(i)) {
-                showNotification('Please check all steps for validation errors.', 'error');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+            // 检查最后一个步骤是否有错误
+            if (!validateStep(5)) {
+                showNotification('请在提交前确保所有必填字段正确填写。', 'error');
                 return;
             }
-        }
-        
-        // Show loading state
-        this.disabled = true;
-        const originalText = this.innerHTML;
-        this.innerHTML = '<div class="spinner"></div> Generating...';
-        
-        // Save form data
-        saveFormData();
-        
-        // Add missing nested arrays for domain settings if not already set
-        if (!formData.domain.parent_grid_ratio) {
-            formData.domain.parent_grid_ratio = [1, 3, 3];
-        }
-        if (!formData.domain.i_parent_start) {
-            formData.domain.i_parent_start = [1, 31, 31];
-        }
-        if (!formData.domain.j_parent_start) {
-            formData.domain.j_parent_start = [1, 17, 33];
-        }
-        if (!formData.domain.parent_time_step_ratio) {
-            formData.domain.parent_time_step_ratio = [1, 3, 3];
-        }
-        
-        // Send the data to the server
-        fetch('/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server error');
+            
+            // 获取完整表单数据
+            saveFormData();
+            
+            // 显示加载动画
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="loading-spinner"></div>
+                <div class="loading-message">正在生成文件，请稍候...</div>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // 清空之前的结果消息
+            if (resultMessages) {
+                resultMessages.innerHTML = '';
             }
-            return response.json();
-        })
-        .then(data => {
-            // Reset button state
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = originalText;
             
-            // Show success notification
-            showNotification('Files generated successfully!', 'success');
-            
-            // Show results
-            resultSection.style.display = 'block';
-            resultSection.scrollIntoView({ behavior: 'smooth' });
-            
-            outputDirPath.textContent = data.output_dir;
-            
-            // Display messages
-            resultMessages.innerHTML = '';
-            data.files.forEach(file => {
-                const fileItem = document.createElement('li');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <i class="fas fa-file-code"></i>
-                    <span class="file-name">${file.name}</span>
-                    <span class="file-size">${formatFileSize(file.size)}</span>
-                    <a href="/download/${file.name}" class="download-link">
-                        <i class="fas fa-download"></i>
-                        Download
-                    </a>
-                `;
-                resultMessages.appendChild(fileItem);
+            // 发送AJAX请求
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 移除加载动画
+                document.body.removeChild(loadingOverlay);
+                
+                if (data.success) {
+                    // 显示结果部分
+                    if (resultSection) {
+                        resultSection.style.display = 'block';
+                        
+                        // 滚动到结果部分
+                        resultSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    
+                    // 显示输出目录
+                    if (outputDirPath) {
+                        outputDirPath.textContent = data.output_dir;
+                    }
+                    
+                    // 显示消息列表
+                    if (resultMessages) {
+                        let messageList = '';
+                        data.messages.forEach(message => {
+                            let messageClass = 'info';
+                            if (message.includes('Error') || message.includes('错误')) {
+                                messageClass = 'error';
+                            } else if (message.includes('complete') || message.includes('完成')) {
+                                messageClass = 'success';
+                            }
+                            messageList += `<div class="message ${messageClass}">${message}</div>`;
+                        });
+                        resultMessages.innerHTML = messageList;
+                    }
+                    
+                    // 设置下载链接
+                    if (data.download_links) {
+                        const downloadWps = document.getElementById('download-wps');
+                        const downloadInput = document.getElementById('download-input');
+                        const downloadScript = document.getElementById('download-script');
+                        const downloadRun = document.getElementById('download-run');
+                        
+                        if (downloadWps) downloadWps.href = data.download_links['namelist.wps'];
+                        if (downloadInput) downloadInput.href = data.download_links['namelist.input'];
+                        if (downloadScript) downloadScript.href = data.download_links['download_script'];
+                        if (downloadRun) downloadRun.href = data.download_links['run_script'];
+                        
+                        // 加载预览内容
+                        loadNamelistPreview(data.download_links['namelist.wps'], data.download_links['namelist.input']);
+                    }
+                    
+                    showNotification('文件生成成功！', 'success');
+                } else {
+                    showNotification(`生成失败: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                // 移除加载动画
+                if (document.body.contains(loadingOverlay)) {
+                    document.body.removeChild(loadingOverlay);
+                }
+                
+                console.error('Error:', error);
+                showNotification('请求失败，请检查网络连接。', 'error');
             });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Reset button state
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = originalText;
-            
-            // Show error notification
-            showNotification('An error occurred while generating files.', 'error');
         });
-    });
+    }
     
     // Format file size
     function formatFileSize(bytes) {
@@ -396,4 +493,63 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize form validation
     initializeFormValidation();
+    
+    // 加载namelist文件预览内容
+    function loadNamelistPreview(wpsUrl, inputUrl) {
+        const wpsContent = document.getElementById('wps-content');
+        const inputContent = document.getElementById('input-content');
+        
+        // 加载namelist.wps预览
+        if (wpsContent) {
+            fetch(wpsUrl)
+                .then(response => response.text())
+                .then(content => {
+                    wpsContent.textContent = content;
+                })
+                .catch(error => {
+                    console.error('Error loading WPS preview:', error);
+                    wpsContent.textContent = 'Failed to load preview';
+                });
+        }
+        
+        // 加载namelist.input预览
+        if (inputContent) {
+            fetch(inputUrl)
+                .then(response => response.text())
+                .then(content => {
+                    inputContent.textContent = content;
+                })
+                .catch(error => {
+                    console.error('Error loading INPUT preview:', error);
+                    inputContent.textContent = 'Failed to load preview';
+                });
+        }
+    }
+    
+    // 为预览标签页添加切换功能
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs.length > 0) {
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有标签的active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // 为当前点击的标签添加active类
+                this.classList.add('active');
+                
+                // 获取目标标签内容ID
+                const targetId = this.getAttribute('data-tab') + '-tab';
+                const targetElement = document.getElementById(targetId);
+                
+                // 隐藏所有内容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 显示目标内容
+                if (targetElement) {
+                    targetElement.classList.add('active');
+                }
+            });
+        });
+    }
 });

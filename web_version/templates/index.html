@@ -194,6 +194,19 @@
                         </div>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="data_source" class="form-label">Data Source</label>
+                        <select class="form-select" id="data_source" name="data_source">
+                            {% for id, name in data_sources.items() %}
+                                <option value="{{ id }}" {% if config.data_source == id %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-help">
+                            <i class="fas fa-circle-info"></i>
+                            <span class="help-text">Meteorological data source for initial and boundary conditions</span>
+                        </div>
+                    </div>
+                    
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i>
                         <div>
@@ -401,8 +414,85 @@
                     </div>
                     
                     <div id="result-section" style="display: none;">
-                        <h3>Generated Files</h3>
-                        <ul id="result-messages"></ul>
+                        <div class="card">
+                            <h2 class="card-title">
+                                <i class="fas fa-check-circle"></i>
+                                生成结果
+                            </h2>
+                            
+                            <div id="result-messages" class="result-messages"></div>
+                            
+                            <div class="download-section">
+                                <h3>下载文件</h3>
+                                <p>这些文件已经生成并可供下载：</p>
+                                
+                                <div class="download-grid">
+                                    <div class="download-item">
+                                        <i class="fas fa-file-code"></i>
+                                        <h4>namelist.wps</h4>
+                                        <p>WRF预处理系统配置文件</p>
+                                        <a href="#" id="download-wps" class="btn btn-secondary">
+                                            <i class="fas fa-download"></i> 下载
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="download-item">
+                                        <i class="fas fa-file-code"></i>
+                                        <h4>namelist.input</h4>
+                                        <p>WRF模型运行配置文件</p>
+                                        <a href="#" id="download-input" class="btn btn-secondary">
+                                            <i class="fas fa-download"></i> 下载
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="download-item">
+                                        <i class="fas fa-terminal"></i>
+                                        <h4>数据下载脚本</h4>
+                                        <p>用于获取气象数据的脚本</p>
+                                        <a href="#" id="download-script" class="btn btn-secondary">
+                                            <i class="fas fa-download"></i> 下载
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="download-item">
+                                        <i class="fas fa-play"></i>
+                                        <h4>运行脚本</h4>
+                                        <p>用于执行WRF模型的脚本</p>
+                                        <a href="#" id="download-run" class="btn btn-secondary">
+                                            <i class="fas fa-download"></i> 下载
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div class="output-path">
+                                    <p>所有文件已保存至：</p>
+                                    <div id="output-dir-path" class="code-block"></div>
+                                </div>
+                                
+                                <div id="namelist-preview" class="namelist-preview">
+                                    <h3>Namelist 预览</h3>
+                                    <div class="tabs">
+                                        <button class="tab active" data-tab="wps">namelist.wps</button>
+                                        <button class="tab" data-tab="input">namelist.input</button>
+                                    </div>
+                                    <div id="wps-tab" class="tab-content active">
+                                        <pre id="wps-content"></pre>
+                                    </div>
+                                    <div id="input-tab" class="tab-content">
+                                        <pre id="input-content"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary" id="reset-btn">
+                                    <i class="fas fa-redo"></i> 重置配置
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="save-config-btn">
+                                    <i class="fas fa-save"></i> 保存配置模板
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="btn-group">
