@@ -906,7 +906,7 @@ class WRFRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'Page not found')
             return
-
+    
     def do_POST(self):
         # 确保队列已初始化
         self.initialize_queue()
