@@ -72,7 +72,22 @@ const apiService = {
   getDataSources: () => api.get('/api/data-sources'),
   
   // 检查配置是否有效
-  validateConfig: (config) => api.post('/api/validate', config)
+  validateConfig: (config) => api.post('/api/validate', config),
+  
+  // 获取所有选项
+  getAllOptions: () => api.get('/api/options'),
+  
+  // 获取默认配置
+  getDefaultConfig: () => api.get('/api/config'),
+  
+  // 提交时间和数据源配置
+  saveTimeConfig: (config) => api.post('/api/time-config', config),
+  
+  // 提交域配置
+  saveDomainConfig: (config) => api.post('/api/domain-config', config),
+  
+  // 提交物理参数配置
+  savePhysicsConfig: (config) => api.post('/api/physics-config', config)
 };
 
 export default apiService; 

@@ -130,7 +130,7 @@ const Home = () => {
       actions={[
         {
           text: "开始配置",
-          href: "/domain",
+          href: "/time",
           variant: "default",
         },
         {

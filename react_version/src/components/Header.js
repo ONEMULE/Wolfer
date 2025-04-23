@@ -17,15 +17,27 @@ const navigationItems = [
     href: "/",
   },
   {
-    title: "物理参数",
-    href: "/physics",
+    title: "时间设置",
+    href: "/time",
   },
   {
     title: "域设置",
     href: "/domain",
   },
   {
-    title: "输出设置",
+    title: "物理参数",
+    href: "/physics",
+  },
+  {
+    title: "动力学设置",
+    href: "/dynamics",
+  },
+  {
+    title: "配置审核",
+    href: "/review",
+  },
+  {
+    title: "输出生成",
     href: "/output",
   },
 ];

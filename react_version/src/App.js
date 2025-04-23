@@ -2,7 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
+import Time from './pages/Time';
 import Domain from './pages/Domain';
+import Physics from './pages/Physics';
+import Dynamics from './pages/Dynamics';
+import Review from './pages/Review';
+import Output from './pages/Output';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
@@ -12,9 +18,12 @@ function App() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/time" element={<Time />} />
             <Route path="/domain" element={<Domain />} />
-            <Route path="/physics" element={<div className="container mx-auto py-8"><h1>物理参数设置</h1><p>页面开发中...</p></div>} />
-            <Route path="/output" element={<div className="container mx-auto py-8"><h1>输出设置</h1><p>页面开发中...</p></div>} />
+            <Route path="/physics" element={<Physics />} />
+            <Route path="/dynamics" element={<Dynamics />} />
+            <Route path="/review" element={<Review />} />
+            <Route path="/output" element={<Output />} />
             <Route path="*" element={<div className="container mx-auto py-8"><h1>页面不存在</h1></div>} />
           </Routes>
         </main>
@@ -23,6 +32,7 @@ function App() {
             <p>WRF Namelist Generator &copy; {new Date().getFullYear()}</p>
           </div>
         </footer>
+        <Toaster />
       </div>
     </Router>
   );
