@@ -11,6 +11,139 @@ document.addEventListener('DOMContentLoaded', function() {
     const outputDirPath = document.getElementById('output-dir-path');
     const dataSourceSelect = document.getElementById('data_source');
     const era5Settings = document.getElementById('era5-settings');
+    const stepsNav = document.querySelector('.steps-nav');
+    const stepsIndicator = document.querySelector('.steps-indicator');
+    
+    // 增强导航效果
+    function setupEnhancedNavigation() {
+        if (!stepsNav || !stepsIndicator) return;
+        
+        // 初始化指示器位置
+        const activeStep = document.querySelector('.step-item.active');
+        if (activeStep) {
+            moveIndicatorToStep(activeStep);
+        }
+        
+        // 监听步骤项的鼠标事件
+        stepItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.classList.add('glowing');
+                animateIndicatorHover(this);
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.classList.remove('glowing');
+                const activeStep = document.querySelector('.step-item.active');
+                if (activeStep) {
+                    moveIndicatorToStep(activeStep, true);
+                }
+            });
+        });
+        
+        // 监听鼠标在导航区域移动
+        stepsNav.addEventListener('mousemove', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 创建光晕效果
+            createRippleEffect(x, y);
+        });
+    }
+    
+    // 移动指示器到步骤
+    function moveIndicatorToStep(stepItem, withAnimation = true) {
+        if (!stepsIndicator) return;
+        
+        const stepRect = stepItem.getBoundingClientRect();
+        const navRect = stepsNav.getBoundingClientRect();
+        
+        const centerX = stepRect.left - navRect.left + stepRect.width / 2;
+        
+        stepsIndicator.style.transition = withAnimation ? 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none';
+        stepsIndicator.style.transform = `translate3d(${centerX}px, -50%, 0)`;
+    }
+    
+    // 悬停时的指示器动画
+    function animateIndicatorHover(stepItem) {
+        if (!stepsIndicator) return;
+        
+        const stepRect = stepItem.getBoundingClientRect();
+        const navRect = stepsNav.getBoundingClientRect();
+        
+        const centerX = stepRect.left - navRect.left + stepRect.width / 2;
+        
+        stepsIndicator.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease';
+        stepsIndicator.style.transform = `translate3d(${centerX}px, -50%, 0) scale(1.08)`;
+        stepsIndicator.style.boxShadow = '0 0 0 5px rgba(255, 255, 255, 0.8), 0 0 20px rgba(37, 99, 235, 0.6), 0 8px 20px rgba(29, 78, 216, 0.6)';
+    }
+    
+    // 创建涟漪效果
+    function createRippleEffect(x, y) {
+        // 如果已经存在太多涟漪，则跳过
+        const existingRipples = stepsNav.querySelectorAll('.nav-ripple');
+        if (existingRipples.length > 5) return;
+        
+        const ripple = document.createElement('div');
+        ripple.classList.add('nav-ripple');
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        
+        // 随机化效果
+        const size = 40 + Math.random() * 30;
+        const duration = 1 + Math.random() * 1;
+        const opacity = 0.1 + Math.random() * 0.3;
+        
+        ripple.style.width = `${size}px`;
+        ripple.style.height = `${size}px`;
+        ripple.style.opacity = opacity;
+        ripple.style.animation = `ripple-effect ${duration}s ease-out forwards`;
+        
+        stepsNav.appendChild(ripple);
+        
+        // 移除涟漪
+        setTimeout(() => {
+            ripple.remove();
+        }, duration * 1000);
+    }
+    
+    // 初始化导航增强效果
+    setupEnhancedNavigation();
+    
+    // 添加CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        .nav-ripple {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(37,99,235,0.4) 40%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+        }
+        
+        @keyframes ripple-effect {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            30% {
+                opacity: var(--opacity, 0.3);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .nav-ripple {
+                background: radial-gradient(circle, rgba(147,197,253,0.8) 0%, rgba(59,130,246,0.4) 40%, transparent 70%);
+            }
+        }
+    `;
+    document.head.appendChild(style);
     
     // Initialize form data object
     let formData = {
@@ -105,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (itemStep === stepNumber) {
                 item.classList.add('active');
+                moveIndicatorToStep(item);
             } else if (itemStep < stepNumber) {
                 item.classList.add('completed');
             }
@@ -115,19 +249,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const nextPage = document.getElementById(`step-${stepNumber}`);
         const isForward = stepNumber > currentStepNumber;
         
-        currentPage.style.transform = isForward ? 'translateX(-20px)' : 'translateX(20px)';
+        currentPage.style.transform = isForward ? 'translateX(-20px) scale(0.98)' : 'translateX(20px) scale(0.98)';
         currentPage.style.opacity = '0';
         
         setTimeout(() => {
             currentPage.classList.remove('active');
             nextPage.classList.add('active');
-            nextPage.style.transform = isForward ? 'translateX(20px)' : 'translateX(-20px)';
+            nextPage.style.transform = isForward ? 'translateX(20px) scale(0.98)' : 'translateX(-20px) scale(0.98)';
             nextPage.style.opacity = '0';
             
             // Trigger reflow
             nextPage.offsetHeight;
             
-            nextPage.style.transform = 'translateX(0)';
+            nextPage.style.transform = 'translateX(0) scale(1)';
             nextPage.style.opacity = '1';
         }, 300);
         
