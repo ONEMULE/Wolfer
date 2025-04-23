@@ -16,32 +16,24 @@ import "../styles/custom-fonts.css";
 
 const navigationItems = [
   {
-    title: "首页",
-    href: "/",
+    title: "平台介绍",
+    href: "/about",
   },
   {
-    title: "时间设置",
-    href: "/time",
+    title: "WRF配置",
+    href: "/wrf-config",
   },
   {
-    title: "域设置",
-    href: "/domain",
+    title: "WRF模拟运行结果",
+    href: "/simulation-results",
   },
   {
-    title: "物理参数",
-    href: "/physics",
+    title: "风力资源分析",
+    href: "/wind-analysis",
   },
   {
-    title: "动力学设置",
-    href: "/dynamics",
-  },
-  {
-    title: "配置审核",
-    href: "/review",
-  },
-  {
-    title: "输出生成",
-    href: "/output",
+    title: "废效及经济效益分析",
+    href: "/economic-analysis",
   },
 ];
 
@@ -61,7 +53,9 @@ function Header() {
           <NavigationMenu className="flex justify-center items-center">
             <NavigationMenuList className="flex justify-center gap-2 flex-row">
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.href;
+                const isActive = location.pathname === item.href || 
+                                (item.href === "/wrf-config" && 
+                                 ["/", "/time", "/domain", "/physics", "/dynamics", "/review", "/output"].includes(location.pathname));
                 return (
                   <NavigationMenuItem key={item.title}>
                     <NavigationMenuLink asChild>
@@ -93,7 +87,9 @@ function Header() {
             {isOpen && (
               <div className="absolute top-16 border-t flex flex-col w-full right-0 bg-background/95 backdrop-blur-sm shadow-lg py-4 container gap-4 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
                 {navigationItems.map((item) => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = location.pathname === item.href || 
+                                   (item.href === "/wrf-config" && 
+                                    ["/", "/time", "/domain", "/physics", "/dynamics", "/review", "/output"].includes(location.pathname));
                   return (
                     <div key={item.title}>
                       <Link
