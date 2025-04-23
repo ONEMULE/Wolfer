@@ -17,15 +17,15 @@ WRF Namelist Generator 旨在简化WRF模型的配置文件（namelist.input）�
 
 位于 `web_version` 目录，特点：
 
-- 简单的Web界面，基于Python标准库http.server实现
-- 无需安装额外依赖
-- 支持所有WRF物理参数化方案的配置
-- 跨平台兼容性好，只需浏览器即可访问
-- 适合快速使用或部署在服务器上供多人使用
+* 简单的Web界面，基于Python标准库http.server实现
+* 无需安装额外依赖
+* 支持所有WRF物理参数化方案的配置
+* 跨平台兼容性好，只需浏览器即可访问
+* 适合快速使用或部署在服务器上供多人使用
 
 ### 启动Web版本
 
-```bash
+```
 cd web_version
 python server.py
 ```
@@ -36,16 +36,16 @@ python server.py
 
 位于 `desktop_version` 目录，特点：
 
-- 美观的桌面图形界面，基于PyQt5
-- 提供更丰富的功能和更好的用户体验
-- 支持地图预览和更高级的配置选项
-- 适合需要频繁使用或高级配置的用户
+* 美观的桌面图形界面，基于PyQt5
+* 提供更丰富的功能和更好的用户体验
+* 支持地图预览和更高级的配置选项
+* 适合需要频繁使用或高级配置的用户
 
 ### 启动桌面版本
 
 先安装依赖：
 
-```bash
+```
 cd desktop_version
 pip install -r requirements.txt
 python main.py
@@ -53,22 +53,24 @@ python main.py
 
 ## 🚀 功能特性
 
-- 支持完整的WRF配置参数设置
-- 实时参数校验，防止无效配置
-- 配置模板保存与加载
-- 多语言支持（中文和英文）
-- 丰富的物理参数化方案选择
+* 支持完整的WRF配置参数设置
+* 实时参数校验，防止无效配置
+* 配置模板保存与加载
+* 多语言支持（中文和英文）
+* 丰富的物理参数化方案选择
 
 ## 📋 系统要求
 
 ### Web版本
-- Python 3.6+
-- 现代Web浏览器（Chrome, Firefox, Safari, Edge等）
+
+* Python 3.6+
+* 现代Web浏览器（Chrome, Firefox, Safari, Edge等）
 
 ### 桌面版本
-- Python 3.6+
-- PyQt5
-- 详细依赖列表见`desktop_version/requirements.txt`
+
+* Python 3.6+
+* PyQt5
+* 详细依赖列表见`desktop_version/requirements.txt`
 
 ## 🤝 如何贡献
 
