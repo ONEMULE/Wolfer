@@ -24,19 +24,22 @@ const Layout = ({ children }) => {
           </Button>
         </div>
         
-        {/* Sidebar - hidden on mobile by default */}
+        {/* Sidebar - fixed position on all screen sizes */}
         <div className={`
           transition-all duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          lg:block fixed lg:static inset-y-0 left-0 z-20
-          w-64 lg:w-64
+          fixed top-0 left-0 z-20
+          w-64
+          h-full
+          pt-16 
+          border-r border-border
+          bg-background
         `}>
-          <div className="h-16 bg-background border-b border-border" /> {/* 占位 */}
           <Sidebar />
         </div>
         
-        {/* Main content */}
-        <main className="flex-1 w-full overflow-auto pl-0 lg:pl-64">
+        {/* Main content with margin to account for fixed sidebar */}
+        <main className="flex-1 w-full overflow-auto pl-0 lg:pl-64 pt-16">
           {children}
         </main>
         
@@ -49,8 +52,8 @@ const Layout = ({ children }) => {
         )}
       </div>
       
-      {/* Footer */}
-      <footer className="py-6 border-t border-border pl-0 lg:pl-64 transition-all duration-300">
+      {/* Footer with margin to account for fixed sidebar */}
+      <footer className="py-6 border-t border-border pl-0 lg:pl-64">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
           <p>沃风平台 &copy; {new Date().getFullYear()}</p>
         </div>
