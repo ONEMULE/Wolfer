@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,6 +10,9 @@ import {
   NavigationMenuTrigger,
 } from "./ui/navigation-menu";
 import { Button } from "./ui/button";
+
+// 添加在开头，引入字体
+import "../styles/custom-fonts.css"; 
 
 const navigationItems = [
   {
@@ -44,49 +47,69 @@ const navigationItems = [
 
 function Header() {
   const [isOpen, setOpen] = useState(false);
+  const location = useLocation();
 
   return (
-    <header className="w-full z-40 bg-background border-b border-border">
-      <div className="container relative mx-auto min-h-16 flex gap-4 flex-row lg:grid lg:grid-cols-3 items-center">
-        <div className="flex lg:justify-start">
-          <p className="font-semibold text-xl">WRF Namelist Generator</p>
+    <header className="w-full z-40 bg-background sticky top-0 border-b border-border shadow-sm backdrop-blur-sm bg-opacity-95">
+      <div className="container relative mx-auto min-h-16 flex gap-4 flex-row lg:grid lg:grid-cols-4 items-center">
+        <div className="flex lg:justify-start lg:col-span-1 -ml-4">
+          <Link to="/" className="flex items-center group">
+            <p className="font-black text-4xl mr-8 tracking-wide font-title bg-gradient-to-br from-primary via-accent to-blue-500 bg-clip-text text-transparent transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:skew-x-1 drop-shadow-lg">沃风平台</p>
+          </Link>
         </div>
-        <div className="justify-center items-center gap-4 lg:flex hidden flex-row">
+        <div className="justify-center items-center gap-4 lg:flex hidden flex-row lg:col-span-2 -ml-6">
           <NavigationMenu className="flex justify-center items-center">
-            <NavigationMenuList className="flex justify-center gap-4 flex-row">
-              {navigationItems.map((item) => (
-                <NavigationMenuItem key={item.title}>
-                  <NavigationMenuLink asChild>
-                    <Link
-                      to={item.href}
-                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    >
-                      {item.title}
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
+            <NavigationMenuList className="flex justify-center gap-2 flex-row">
+              {navigationItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <NavigationMenuItem key={item.title}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to={item.href}
+                        className={`group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                          isActive 
+                            ? "bg-accent/10 text-accent font-semibold" 
+                            : "bg-background text-foreground hover:bg-accent/10 hover:text-accent"
+                        }`}
+                      >
+                        {item.title}
+                        {isActive && (
+                          <span className="absolute bottom-0 left-0 right-0 mx-auto h-0.5 w-2/3 rounded-full bg-accent"></span>
+                        )}
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                );
+              })}
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="flex justify-end w-full">
+        <div className="flex justify-end w-full lg:col-span-1">
           <div className="flex w-12 shrink lg:hidden items-end justify-end">
-            <Button variant="ghost" onClick={() => setOpen(!isOpen)}>
+            <Button variant="ghost" onClick={() => setOpen(!isOpen)} className="rounded-full p-2 hover:bg-accent/10">
               {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
             {isOpen && (
-              <div className="absolute top-16 border-t flex flex-col w-full right-0 bg-background shadow-lg py-4 container gap-8 z-50">
-                {navigationItems.map((item) => (
-                  <div key={item.title}>
-                    <Link
-                      to={item.href}
-                      className="flex justify-between items-center"
-                      onClick={() => setOpen(false)}
-                    >
-                      <span className="text-lg">{item.title}</span>
-                    </Link>
-                  </div>
-                ))}
+              <div className="absolute top-16 border-t flex flex-col w-full right-0 bg-background/95 backdrop-blur-sm shadow-lg py-4 container gap-4 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
+                {navigationItems.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <div key={item.title}>
+                      <Link
+                        to={item.href}
+                        className={`flex justify-between items-center px-2 py-2 rounded-md transition-colors ${
+                          isActive 
+                            ? "bg-accent/10 text-accent font-semibold" 
+                            : "hover:bg-accent/5 hover:text-accent"
+                        }`}
+                        onClick={() => setOpen(false)}
+                      >
+                        <span className="text-base">{item.title}</span>
+                      </Link>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

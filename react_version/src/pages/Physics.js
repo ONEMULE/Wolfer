@@ -64,7 +64,7 @@ const Physics = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="mb-2">
+        <div className="mb-2 pt-6">
           <h1 className="text-3xl font-bold mb-2">物理参数设置</h1>
           <p className="text-muted-foreground">
             选择适合您研究目标的物理参数化方案以提高模拟结果的准确性

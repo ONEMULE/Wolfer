@@ -68,7 +68,7 @@ const Domain = () => {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 pt-6">
           <h1 className="text-3xl font-bold mb-2">WRF域设置</h1>
           <p className="text-muted-foreground">
             配置模拟区域的空间特性，包括分辨率、投影和嵌套域

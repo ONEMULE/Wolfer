@@ -147,7 +147,7 @@ const Output = () => {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 pt-6">
           <h1 className="text-3xl font-bold mb-2">配置生成</h1>
           <p className="text-muted-foreground">
             生成WRF配置文件，包括namelist.wps和namelist.input

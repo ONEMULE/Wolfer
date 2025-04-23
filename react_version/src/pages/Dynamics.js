@@ -64,7 +64,7 @@ const Dynamics = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="mb-2">
+        <div className="mb-2 pt-6">
           <h1 className="text-3xl font-bold mb-2">动力学配置</h1>
           <p className="text-muted-foreground">
             配置WRF模型的动力学核心设置，影响模拟的稳定性和精度

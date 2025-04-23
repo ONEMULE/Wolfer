@@ -91,7 +91,7 @@ const Review = () => {
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col items-center">
         <div className="w-full max-w-4xl mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 pt-6">
             <h1 className="text-3xl font-bold">配置审核</h1>
             <div className="flex gap-4">
               <Button variant="outline" onClick={handlePreviousStep}>

@@ -60,7 +60,7 @@ const Time = () => {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="mb-2">
+        <div className="mb-2 pt-6">
           <h1 className="text-3xl font-bold mb-2">时间配置</h1>
           <p className="text-muted-foreground">
             设置WRF模拟的时间范围和数据源
