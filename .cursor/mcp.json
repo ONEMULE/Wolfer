@@ -1,28 +1,5 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "timeout": 60,
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\admin",
-        "E:\\"
-      ],
-      "transportType": "stdio"
-    },
-    "browser-tool-mcp": {
-      "timeout": 60,
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@agentdeskai/browser-tools-mcp@latest"
-      ],
-      "transportType": "stdio"
-    }
+    
   }
 }
