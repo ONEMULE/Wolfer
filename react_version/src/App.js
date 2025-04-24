@@ -13,7 +13,7 @@ import WrfConfig from './pages/WrfConfig';
 import SimulationResults from './pages/SimulationResults';
 import WindAnalysis from './pages/WindAnalysis';
 import EconomicAnalysis from './pages/EconomicAnalysis';
-import { Toaster } from './components/ui/toaster';
+import { Toaster } from './components/ui/toaster.jsx';
 
 function App() {
   return (

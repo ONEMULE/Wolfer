@@ -4,6 +4,9 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { useToast } from "./ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { CheckCircle } from "lucide-react";
 
 const WrfDomainForm = ({
   onSubmit,
@@ -22,6 +25,9 @@ const WrfDomainForm = ({
   },
 }) => {
   const [formValues, setFormValues] = useState(defaultValues);
+  const { toast } = useToast();
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -31,19 +37,55 @@ const WrfDomainForm = ({
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit(formValues);
-    }
-    console.log(formValues);
+  const handleFormSubmit = () => {
+    // Prevent form from actually submitting
+    setIsSubmitting(true);
+    console.log("Form submitted without page refresh, values:", formValues);
+    
+    // 添加点击反馈效果
+    setTimeout(() => {
+      if (onSubmit) {
+        console.log("Calling parent onSubmit function");
+        onSubmit(formValues);
+      } else {
+        console.log("No parent onSubmit function, showing custom alert");
+        // 自定义成功消息
+        setShowSuccessAlert(true);
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 3000);
+        
+        // Always show toast
+        toast({
+          title: "域设置已保存",
+          description: "您可以继续下一步配置",
+          variant: "default",
+        });
+      }
+      setIsSubmitting(false);
+    }, 200);
   };
 
   return (
     <Card className="w-full max-w-3xl p-6">
       <h2 className="text-2xl font-bold mb-6">WRF域配置</h2>
+      
+      {showSuccessAlert && (
+        <Alert className="mb-4 bg-green-50 border-green-200">
+          <div className="flex items-center">
+            <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+            <div>
+              <AlertTitle className="text-green-700">设置已保存</AlertTitle>
+              <AlertDescription className="text-green-600">
+                您的域设置已成功保存，可以继续下一步配置。
+              </AlertDescription>
+            </div>
+          </div>
+        </Alert>
+      )}
+      
       <Form>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Grid dimensions */}
             <FormField
@@ -284,9 +326,16 @@ const WrfDomainForm = ({
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit">保存配置</Button>
+            <Button 
+              type="button" 
+              onClick={handleFormSubmit}
+              className={`relative ${isSubmitting ? 'opacity-80 scale-95' : ''}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '保存中...' : '保存配置'}
+            </Button>
           </div>
-        </form>
+        </div>
       </Form>
     </Card>
   );

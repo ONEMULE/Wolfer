@@ -13,13 +13,20 @@ const Domain = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nextDisabled, setNextDisabled] = useState(true);
   
   useEffect(() => {
     // 加载整体配置
     const savedConfig = localStorage.getItem("wrf_config");
     if (savedConfig) {
       try {
-        setConfig(JSON.parse(savedConfig));
+        const parsedConfig = JSON.parse(savedConfig);
+        setConfig(parsedConfig);
+        // 如果已经有域设置，则启用下一步按钮
+        if (parsedConfig.domain) {
+          setNextDisabled(false);
+        }
       } catch (error) {
         console.error("Error parsing saved configuration:", error);
       }
@@ -28,6 +35,9 @@ const Domain = () => {
   }, []);
 
   const handleSubmit = (domainData) => {
+    // 设置提交状态
+    setIsSubmitting(true);
+    
     // 更新整体配置中的domain部分
     const updatedConfig = {
       ...config,
@@ -37,16 +47,25 @@ const Domain = () => {
                            domainData.map_proj === 'mercator' ? 3 : 6)
     };
     
-    // 保存更新后的整体配置
-    localStorage.setItem("wrf_config", JSON.stringify(updatedConfig));
-    setConfig(updatedConfig);
-    
-    // 显示成功提示
-    toast({
-      title: "域设置已保存",
-      description: "您可以继续下一步配置",
-      variant: "default",
-    });
+    // 模拟网络延迟，提供更明显的反馈
+    setTimeout(() => {
+      // 保存更新后的整体配置
+      localStorage.setItem("wrf_config", JSON.stringify(updatedConfig));
+      setConfig(updatedConfig);
+      
+      // 启用下一步按钮
+      setNextDisabled(false);
+      
+      // 显示成功提示
+      toast({
+        title: "域设置已保存",
+        description: "您可以继续下一步配置",
+        variant: "default",
+      });
+      
+      // 重置提交状态
+      setIsSubmitting(false);
+    }, 300);
   };
 
   const handleBack = () => {
@@ -77,15 +96,23 @@ const Domain = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
-            <DomainForm onSubmit={handleSubmit} defaultValues={config.domain} />
+            <DomainForm 
+              onSubmit={handleSubmit} 
+              defaultValues={config.domain} 
+            />
             
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={handleBack}>
+              <Button 
+                variant="outline" 
+                onClick={handleBack}
+                className="transition-all hover:bg-gray-100 active:scale-95"
+              >
                 返回：时间设置
               </Button>
               <Button 
                 onClick={handleNext} 
-                disabled={!config.domain}
+                disabled={nextDisabled}
+                className={`transition-all ${!nextDisabled && 'hover:brightness-105 active:scale-95'}`}
               >
                 下一步：物理参数设置
               </Button>
