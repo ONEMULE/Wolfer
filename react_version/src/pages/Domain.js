@@ -140,7 +140,7 @@ const Domain = () => {
             </Card>
             
             {config.domain && (
-              <Card className="p-6 mt-6">
+              <Card className="p-6 mt-6 mb-12">
                 <h2 className="text-xl font-semibold mb-4">当前配置</h2>
                 <div className="space-y-2 text-sm">
                   <p><span className="font-medium">网格尺寸:</span> {config.domain.e_we} x {config.domain.e_sn}</p>

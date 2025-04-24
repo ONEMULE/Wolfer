@@ -37,12 +37,13 @@ const Layout = ({ children }) => {
           border-r border-border
           bg-background
           overflow-y-auto
+          pb-8
         `}>
           <Sidebar />
         </div>
         
         {/* Main content with margin to account for fixed sidebar and header */}
-        <main className="flex-1 w-full overflow-auto pl-0 lg:pl-64 pt-16">
+        <main className="flex-1 w-full overflow-auto pl-0 lg:pl-64 pt-16 pb-12">
           {children}
         </main>
         

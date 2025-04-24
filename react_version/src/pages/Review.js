@@ -41,12 +41,8 @@ const Review = () => {
   }, [toast]);
 
   const handleGenerate = () => {
-    // 在这里添加生成namelist文件的代码
-    toast({
-      title: "配置文件生成功能",
-      description: "将在后续版本中实现",
-      variant: "default",
-    });
+    // 导航到输出生成页面
+    navigate("/output");
   };
 
   const handlePreviousStep = () => {

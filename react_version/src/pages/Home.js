@@ -1,9 +1,10 @@
 import React from "react";
-import { ArrowRight, Cloud } from "lucide-react";
+import { ArrowRight, Cloud, Terminal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const FeatureCard = ({ title, description, icon }) => {
   return (
@@ -14,6 +15,190 @@ const FeatureCard = ({ title, description, icon }) => {
       <h3 className="text-xl font-semibold">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
     </Card>
+  );
+};
+
+// 示例namelist配置
+const shareExample = `&share
+ wrf_core = 'ARW',
+ max_dom = 1,
+ start_date = '2025-02-14_00:00:00',
+ end_date   = '2025-02-15_00:00:00',
+ interval_seconds = 10800,
+ io_form_geogrid = 102,
+/
+
+&geogrid
+ parent_id         =   1,
+ parent_grid_ratio =   1, 
+ i_parent_start    =   1, 
+ j_parent_start    =   1,
+ e_we              =   31, 
+ e_sn              =   31,
+ geog_data_res = 'default',
+ dx = 3000,
+ dy = 3000,
+ map_proj = 'lambert',
+ ref_lat   =  36.20,
+ ref_lon   =  120.60,
+ truelat1  =  30.0,
+ truelat2  =  60.0,
+ stand_lon =  120.60,
+ geog_data_path = '/home/onemule/WRF/run/geo_data/geog_high_res_mandatory/WPS_GEOG'
+/
+
+&ungrib
+ out_format = 'WPS',
+ prefix = 'FILE',
+/
+
+&metgrid
+ fg_name = 'FILE',
+ io_form_metgrid = 102,
+/`;
+
+const timeControlExample = ` &time_control
+ run_days                            = 0,
+ run_hours                           = 24,
+ run_minutes                         = 0,
+ run_seconds                         = 0,
+ start_year                          = 2025, 
+ start_month                         = 02, 
+ start_day                           = 14,
+ start_hour                          = 00, 
+ end_year                            = 2025, 
+ end_month                           = 02,
+ end_day                             = 15,   
+ end_hour                            = 00, 
+ interval_seconds                    = 10800
+ input_from_file                     = .true.,
+ history_interval                    = 30,
+ frames_per_outfile                  = 1000,
+ restart                             = .false.,
+ restart_interval                    = 7200,
+ io_form_history                     = 2
+ io_form_restart                     = 2
+ io_form_input                       = 2
+ io_form_boundary                    = 2
+ /
+
+ &domains
+ time_step                           = 18,
+ time_step_fract_num                 = 0,
+ time_step_fract_den                 = 1,
+ max_dom                             = 1,
+ e_we                                = 31,  
+ e_sn                                = 31,
+ e_vert                              = 45, 
+ dzstretch_s                         = 1.1
+ p_top_requested                     = 5000,
+ num_metgrid_levels                  = 34,
+ num_metgrid_soil_levels             = 4,
+ dx                                  = 3000,
+ dy                                  = 3000,
+ grid_id                             = 1, 
+ parent_id                           = 1, 
+ i_parent_start                      = 1,  
+ j_parent_start                      = 1, 
+ parent_grid_ratio                   = 1, 
+ parent_time_step_ratio              = 1, 
+ feedback                            = 1,
+ smooth_option                       = 0
+ /
+
+ &physics
+ physics_suite                       = 'CONUS'
+ mp_physics                          = 8,    
+ cu_physics                          = 6,    
+ ra_lw_physics                       = 4,    
+ ra_sw_physics                       = 4,    
+ bl_pbl_physics                      = 2,    
+ sf_sfclay_physics                   = 2,    
+ sf_surface_physics                  = 2,    
+ radt                                = 15,   
+ bldt                                = 0,     
+ cudt                                = 0,     
+ icloud                              = 1,
+ num_land_cat                        = 21,
+ sf_urban_physics                    = 0,     
+ fractional_seaice                   = 1,
+ /
+
+ &fdda
+ /
+
+ &dynamics
+ hybrid_opt                          = 2, 
+ w_damping                           = 0,
+ diff_opt                            = 2,    
+ km_opt                              = 4,    
+ diff_6th_opt                        = 0,   
+ diff_6th_factor                     = 0.12, 
+ base_temp                           = 290.
+ damp_opt                            = 3,
+ zdamp                               = 5000., 
+ dampcoef                            = 0.2,    
+ khdif                               = 0,      
+ kvdif                               = 0,     
+ non_hydrostatic                     = .true., 
+ moist_adv_opt                       = 1,
+ scalar_adv_opt                      = 1,
+ gwd_opt                             = 1,
+ /
+
+ &bdy_control
+ spec_bdy_width                      = 5,
+ specified                           = .true.
+ /
+
+ &grib2
+ /
+
+ &namelist_quilt
+ nio_tasks_per_group = 0,
+ nio_groups = 1,
+ /`;
+
+// Namelist 预览组件
+const NamelistPreview = () => {
+  return (
+    <Tabs defaultValue="share" className="w-full">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-medium">Namelist 文件预览</h3>
+        <TabsList className="p-0.5">
+          <TabsTrigger value="share" className="text-xs px-3 py-1.5">namelist.wps</TabsTrigger>
+          <TabsTrigger value="time" className="text-xs px-3 py-1.5">namelist.input</TabsTrigger>
+        </TabsList>
+      </div>
+      
+      <Card className="w-full overflow-hidden border border-border">
+        <TabsContent value="share" className="m-0">
+          <div className="bg-black/90 overflow-auto h-[300px] p-4 font-mono text-sm text-green-400">
+            <div className="flex">
+              <div className="min-w-[40px] text-gray-500 select-none text-right pr-4">
+                {shareExample.split('\n').map((_, i) => (
+                  <div key={i} className="h-5 leading-5">{i + 1}</div>
+                ))}
+              </div>
+              <pre className="text-left">{shareExample}</pre>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="time" className="m-0">
+          <div className="bg-black/90 overflow-auto h-[300px] p-4 font-mono text-sm text-green-400">
+            <div className="flex">
+              <div className="min-w-[40px] text-gray-500 select-none text-right pr-4">
+                {timeControlExample.split('\n').map((_, i) => (
+                  <div key={i} className="h-5 leading-5">{i + 1}</div>
+                ))}
+              </div>
+              <pre className="text-left">{timeControlExample}</pre>
+            </div>
+          </div>
+        </TabsContent>
+      </Card>
+    </Tabs>
   );
 };
 
@@ -57,11 +242,9 @@ const HeroSection = ({
             ))}
           </div>
 
-          {/* Image Placeholder */}
-          <div className="relative w-full max-w-5xl mt-8 rounded-lg overflow-hidden border border-border/50 shadow-lg">
-            <div className="w-full h-[300px] bg-muted flex items-center justify-center">
-              <p className="text-muted-foreground">WRF Namelist Generator Preview</p>
-            </div>
+          {/* Namelist Preview */}
+          <div className="relative w-full max-w-5xl mt-8 rounded-lg overflow-hidden shadow-lg">
+            <NamelistPreview />
           </div>
         </div>
 
