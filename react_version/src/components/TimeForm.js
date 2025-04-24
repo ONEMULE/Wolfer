@@ -22,6 +22,7 @@ const TimeForm = ({ onSubmit, defaultValues = {
 } }) => {
   const [formValues, setFormValues] = useState(defaultValues);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const startDateId = useId();
   const endDateId = useId();
@@ -72,11 +73,17 @@ const TimeForm = ({ onSubmit, defaultValues = {
     e.preventDefault();
     
     if (validateForm()) {
-      if (onSubmit) {
-        onSubmit(formValues);
-      }
-      // Save to localStorage
-      localStorage.setItem("timeConfig", JSON.stringify(formValues));
+      setIsSubmitting(true);
+      
+      // 添加延迟以显示动画效果
+      setTimeout(() => {
+        if (onSubmit) {
+          onSubmit(formValues);
+        }
+        // Save to localStorage
+        localStorage.setItem("timeConfig", JSON.stringify(formValues));
+        setIsSubmitting(false);
+      }, 200);
     }
   };
 
@@ -161,7 +168,13 @@ const TimeForm = ({ onSubmit, defaultValues = {
           </Alert>
 
           <div className="flex justify-end">
-            <Button type="submit">保存时间设置</Button>
+            <Button 
+              type="submit" 
+              className={`relative ${isSubmitting ? 'opacity-80 scale-95' : ''}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '保存中...' : '保存时间设置'}
+            </Button>
           </div>
         </div>
       </form>

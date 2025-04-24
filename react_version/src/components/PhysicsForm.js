@@ -21,6 +21,7 @@ const PhysicsForm = ({ onSubmit, defaultValues = {
   cu_physics: 1
 } }) => {
   const [formValues, setFormValues] = useState(defaultValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const mpPhysicsId = useId();
   const raLwPhysicsId = useId();
   const raSwPhysicsId = useId();
@@ -37,9 +38,15 @@ const PhysicsForm = ({ onSubmit, defaultValues = {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit(formValues);
-    }
+    setIsSubmitting(true);
+    
+    // 添加延迟以显示动画效果
+    setTimeout(() => {
+      if (onSubmit) {
+        onSubmit(formValues);
+      }
+      setIsSubmitting(false);
+    }, 200);
   };
 
   return (
@@ -169,7 +176,13 @@ const PhysicsForm = ({ onSubmit, defaultValues = {
         </div>
 
         <div className="flex justify-end mt-6">
-          <Button type="submit">保存物理参数设置</Button>
+          <Button 
+            type="submit" 
+            className={`relative ${isSubmitting ? 'opacity-80 scale-95' : ''}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '保存中...' : '保存物理参数设置'}
+          </Button>
         </div>
       </form>
     </Card>

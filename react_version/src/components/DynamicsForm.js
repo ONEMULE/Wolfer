@@ -23,6 +23,7 @@ const DynamicsForm = ({
 }) => {
   const [formValues, setFormValues] = useState(defaultValues);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // 生成唯一ID
   const diffOptId = useId();
@@ -63,13 +64,19 @@ const DynamicsForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleFormSubmit = (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      if (onSubmit) {
-        onSubmit(formValues);
-      }
+      setIsSubmitting(true);
+      
+      // 添加延迟以显示动画效果
+      setTimeout(() => {
+        if (onSubmit) {
+          onSubmit(formValues);
+        }
+        setIsSubmitting(false);
+      }, 200);
     }
   };
 
@@ -82,7 +89,7 @@ const DynamicsForm = ({
         </p>
       </div>
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Diffusion Option */}
           <div className="space-y-2">
@@ -153,14 +160,20 @@ const DynamicsForm = ({
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>扩散选项控制模型的数值扩散和稳定性</li>
                 <li>湍流系数选项影响湍流混合过程的处理方式</li>
-                <li>非静力学模式对于分辨率高于10km的模拟非常重要</li>
+                <li>非静力学模式对于分辨率小于10km的模拟非常重要</li>
               </ul>
             </AlertDescription>
           </div>
         </Alert>
 
         <div className="flex justify-end mt-6">
-          <Button type="submit">保存配置</Button>
+          <Button 
+            type="submit" 
+            className={`relative ${isSubmitting ? 'opacity-80 scale-95' : ''}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '保存中...' : '保存配置'}
+          </Button>
         </div>
       </form>
     </Card>
