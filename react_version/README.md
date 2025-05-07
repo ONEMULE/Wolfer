@@ -1,14 +1,20 @@
-# WRF Namelist Generator - React版本
+# 沃风平台 - React版本
 
-基于React和现代UI组件的Weather Research and Forecasting (WRF)模型配置文件生成工具。
+基于React 18.2.0和现代UI组件的Weather Research and Forecasting (WRF)模型配置文件生成工具。
 
 ## 特性
 
-- 现代化UI界面，使用React和21st Magic UI组件
+- 现代化UI界面，使用React 18和Radix UI组件
 - 完整的WRF域参数配置
 - 丰富的物理参数化方案选择
-- 实时参数验证
+- 实时参数验证与表单控制
 - 响应式设计，支持各种设备访问
+- 利用React 18的并发特性提升性能
+
+## 安装要求
+
+- Node.js 16.x或更高版本
+- npm 8.x或更高版本
 
 ## 安装说明
 
@@ -51,10 +57,19 @@ src/
 
 ## 技术栈
 
-- React 18
-- React Router
-- Tailwind CSS
-- 21st Magic UI组件库
+- React 18.2.0
+- React DOM 18.2.0
+- React Router 6.18.0
+- Tailwind CSS 3.3.3
+- Radix UI组件库
+- Axios 1.5.0
+
+## React 18特性应用
+
+- **自动批处理**：减少不必要的重新渲染
+- **并发渲染**：优化用户界面响应性
+- **Suspense组件**：改进数据加载体验
+- **新的服务器端渲染架构**：提升首次加载性能
 
 ## 配置选项
 
@@ -76,4 +91,15 @@ src/
 
 ## 后端接口
 
-该React前端设计为与原有Web版本的后端服务（server.py）或自定义API服务配合使用。 
+该React前端设计为与原有Web版本的后端服务（server.py）或自定义API服务配合使用。
+
+## 浏览器兼容性
+
+- Chrome (最新版)
+- Firefox (最新版)
+- Safari (最新版)
+- Edge (最新版)
+
+## 贡献指南
+
+欢迎提交问题和拉取请求以改进项目！ 

@@ -1,71 +1,58 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DomainForm from "../components/DomainForm";
 import { Card } from "../components/ui/card";
-import { Alert, AlertDescription } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
-import { InfoIcon } from "lucide-react";
 import { useToast } from "../components/ui/use-toast";
-import { PROJECTIONS, DEFAULT_CONFIG } from "../utils/constants";
+import { useConfig } from "../context/ConfigContext";
 
 const Domain = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nextDisabled, setNextDisabled] = useState(true);
-  
-  useEffect(() => {
-    // 加载整体配置
-    const savedConfig = localStorage.getItem("wrf_config");
-    if (savedConfig) {
-      try {
-        const parsedConfig = JSON.parse(savedConfig);
-        setConfig(parsedConfig);
-        // 如果已经有域设置，则启用下一步按钮
-        if (parsedConfig.domain) {
-          setNextDisabled(false);
-        }
-      } catch (error) {
-        console.error("Error parsing saved configuration:", error);
-      }
-    }
-    setLoading(false);
-  }, []);
+  const { config: globalConfig, updateConfigSection } = useConfig();
+  const [nextDisabled, setNextDisabled] = React.useState(true);
 
-  const handleSubmit = (domainData) => {
-    // 设置提交状态
-    setIsSubmitting(true);
-    
-    // 更新整体配置中的domain部分
-    const updatedConfig = {
-      ...config,
-      domain: domainData,
-      projection: parseInt(domainData.map_proj === 'lambert' ? 1 : 
-                           domainData.map_proj === 'polar' ? 2 : 
-                           domainData.map_proj === 'mercator' ? 3 : 6)
-    };
-    
-    // 模拟网络延迟，提供更明显的反馈
-    setTimeout(() => {
-      // 保存更新后的整体配置
-      localStorage.setItem("wrf_config", JSON.stringify(updatedConfig));
-      setConfig(updatedConfig);
-      
-      // 启用下一步按钮
+  useEffect(() => {
+    const { domain_setup } = globalConfig;
+    if (
+      domain_setup &&
+      domain_setup.e_we_arr && domain_setup.e_we_arr[0] &&
+      domain_setup.dx_arr && domain_setup.dx_arr[0] &&
+      domain_setup.map_proj
+    ) {
       setNextDisabled(false);
-      
-      // 显示成功提示
-      toast({
-        title: "域设置已保存",
-        description: "您可以继续下一步配置",
-        variant: "default",
-      });
-      
-      // 重置提交状态
-      setIsSubmitting(false);
-    }, 300);
+    } else {
+      setNextDisabled(true);
+    }
+  }, [globalConfig.domain_setup]);
+
+  const handleSubmit = (domainDataFromForm) => {
+    const newDomainSetupData = {
+      ...globalConfig.domain_setup,
+      max_dom: domainDataFromForm.max_dom,
+      map_proj: domainDataFromForm.map_proj,
+      e_we_arr: [parseFloat(domainDataFromForm.e_we)],
+      e_sn_arr: [parseFloat(domainDataFromForm.e_sn)],
+      dx_arr: [parseFloat(domainDataFromForm.dx) * 1000],
+      dy_arr: [parseFloat(domainDataFromForm.dy) * 1000],
+      ref_lat_arr: [parseFloat(domainDataFromForm.ref_lat)],
+      ref_lon_arr: [parseFloat(domainDataFromForm.ref_lon)],
+      truelat1_arr: [parseFloat(domainDataFromForm.truelat1)],
+      truelat2_arr: [parseFloat(domainDataFromForm.truelat2)],
+      stand_lon_arr: [parseFloat(domainDataFromForm.stand_lon)],
+      parent_id_arr: globalConfig.domain_setup.parent_id_arr || [0],
+      parent_grid_ratio_arr: globalConfig.domain_setup.parent_grid_ratio_arr || [1],
+      i_parent_start_arr: globalConfig.domain_setup.i_parent_start_arr || [1],
+      j_parent_start_arr: globalConfig.domain_setup.j_parent_start_arr || [1],
+    };
+
+    updateConfigSection('domain_setup', newDomainSetupData);
+    
+    toast({
+      title: "域设置已保存至全局配置",
+      description: "您可以继续下一步配置或返回修改。",
+      variant: "default",
+    });
   };
 
   const handleBack = () => {
@@ -76,13 +63,26 @@ const Domain = () => {
     navigate("/physics");
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8 px-4 flex justify-center items-center">
-        <p>加载中...</p>
-      </div>
-    );
-  }
+  const getDomainFormDefaults = () => {
+    const { domain_setup } = globalConfig;
+    if (!domain_setup) return {};
+
+    return {
+      e_we: domain_setup.e_we_arr ? domain_setup.e_we_arr[0] : 100,
+      e_sn: domain_setup.e_sn_arr ? domain_setup.e_sn_arr[0] : 100,
+      dx: domain_setup.dx_arr ? domain_setup.dx_arr[0] / 1000 : 30,
+      dy: domain_setup.dy_arr ? domain_setup.dy_arr[0] / 1000 : 30,
+      ref_lat: domain_setup.ref_lat_arr ? domain_setup.ref_lat_arr[0] : 34.0,
+      ref_lon: domain_setup.ref_lon_arr ? domain_setup.ref_lon_arr[0] : 118.0,
+      truelat1: domain_setup.truelat1_arr ? domain_setup.truelat1_arr[0] : 30.0,
+      truelat2: domain_setup.truelat2_arr ? domain_setup.truelat2_arr[0] : 60.0,
+      stand_lon: domain_setup.stand_lon_arr ? domain_setup.stand_lon_arr[0] : 118.0,
+      max_dom: domain_setup.max_dom || 1,
+      map_proj: domain_setup.map_proj || "lambert",
+    };
+  };
+  
+  const currentDomainConfig = globalConfig.domain_setup;
 
   return (
     <div className="container mx-auto py-8">
@@ -98,7 +98,7 @@ const Domain = () => {
           <div className="md:col-span-2">
             <DomainForm 
               onSubmit={handleSubmit} 
-              defaultValues={config.domain} 
+              defaultValues={getDomainFormDefaults()} 
             />
             
             <div className="flex justify-between mt-6">
@@ -166,13 +166,13 @@ const Domain = () => {
               </div>
             </Card>
             
-            {config.domain && (
+            {currentDomainConfig && (
               <Card className="p-6 mt-6 mb-12">
-                <h2 className="text-xl font-semibold mb-4">当前配置</h2>
+                <h2 className="text-xl font-semibold mb-4">当前配置 (来自全局状态)</h2>
                 <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">网格尺寸:</span> {config.domain.e_we} x {config.domain.e_sn}</p>
-                  <p><span className="font-medium">网格间距:</span> {config.domain.dx} km x {config.domain.dy} km</p>
-                  <p><span className="font-medium">中心位置:</span> {config.domain.ref_lat}°N, {config.domain.ref_lon}°E</p>
+                  <p><span className="font-medium">网格尺寸:</span> {currentDomainConfig.e_we_arr ? currentDomainConfig.e_we_arr[0] : 'N/A'} x {currentDomainConfig.e_sn_arr ? currentDomainConfig.e_sn_arr[0] : 'N/A'}</p>
+                  <p><span className="font-medium">网格间距:</span> {currentDomainConfig.dx_arr ? currentDomainConfig.dx_arr[0]/1000 : 'N/A'} km x {currentDomainConfig.dy_arr ? currentDomainConfig.dy_arr[0]/1000 : 'N/A'} km</p>
+                  <p><span className="font-medium">中心位置:</span> {currentDomainConfig.ref_lat_arr ? currentDomainConfig.ref_lat_arr[0] : 'N/A'}°N, {currentDomainConfig.ref_lon_arr ? currentDomainConfig.ref_lon_arr[0] : 'N/A'}°E</p>
                   <p>
                     <span className="font-medium">投影方式:</span> {
                       {
@@ -180,10 +180,10 @@ const Domain = () => {
                         'polar': 'Polar Stereographic',
                         'mercator': 'Mercator',
                         'lat-lon': 'Lat-Lon'
-                      }[config.domain.map_proj] || config.domain.map_proj
+                      }[currentDomainConfig.map_proj] || currentDomainConfig.map_proj || 'N/A'
                     }
                   </p>
-                  <p><span className="font-medium">域数量:</span> {config.domain.max_dom}</p>
+                  <p><span className="font-medium">域数量:</span> {currentDomainConfig.max_dom || 'N/A'}</p>
                 </div>
               </Card>
             )}

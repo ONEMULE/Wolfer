@@ -80,8 +80,6 @@ const TimeForm = ({ onSubmit, defaultValues = {
         if (onSubmit) {
           onSubmit(formValues);
         }
-        // Save to localStorage
-        localStorage.setItem("timeConfig", JSON.stringify(formValues));
         setIsSubmitting(false);
       }, 200);
     }
