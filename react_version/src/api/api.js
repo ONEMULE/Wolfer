@@ -55,7 +55,7 @@ const apiService = {
   saveConfiguration: (config) => api.post('/api/configuration', config),
   
   // 生成Namelist文件
-  generateNamelist: (config) => api.post('/api/generate', config),
+  generateNamelist: (config) => api.post('/api/generate-namelist', config),
   
   // 下载生成的文件
   downloadFile: (filename) => api.get(`/api/download/${filename}`, { 

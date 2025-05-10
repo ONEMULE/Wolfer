@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useId } from "react";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
@@ -12,47 +12,106 @@ import {
 } from "./CustomSelect";
 import { PHYSICS_OPTIONS } from "../utils/constants";
 
-const PhysicsForm = ({ onSubmit, defaultValues = {
-  mp_physics: 6,
-  ra_lw_physics: 1,
-  ra_sw_physics: 1,
-  sf_surface_physics: 2,
-  bl_pbl_physics: 1,
-  cu_physics: 1
-} }) => {
-  const [formValues, setFormValues] = useState(defaultValues);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const mpPhysicsId = useId();
-  const raLwPhysicsId = useId();
-  const raSwPhysicsId = useId();
-  const sfSurfacePhysicsId = useId();
-  const blPblPhysicsId = useId();
-  const cuPhysicsId = useId();
+// Helper to get the first element of an array or a fallback string
+const getFirstArrVal = (arr, fallback = "") => {
+  return arr && arr.length > 0 ? arr[0].toString() : fallback;
+};
 
-  const handleChange = (name, value) => {
-    setFormValues({
-      ...formValues,
-      [name]: parseInt(value)
-    });
+const PhysicsForm = ({ onSubmit, defaultValues }) => {
+  // Initialize formValues based on the array structure expected by ConfigContext
+  const initializeFormValues = (dv) => {
+    if (!dv) return {}; // Should not happen if ConfigContext is working
+    const initial = {};
+    for (const key in PHYSICS_OPTIONS) {
+      const arrKey = `${key}_arr`; // e.g., mp_physics_arr
+      // Use value from defaultValues if available, otherwise find default from PHYSICS_OPTIONS
+      if (dv[arrKey] && dv[arrKey].length > 0) {
+        initial[arrKey] = [...dv[arrKey]];
+      } else {
+        // Fallback to the first option in PHYSICS_OPTIONS for this category
+        const optionsForCategory = PHYSICS_OPTIONS[key];
+        if (optionsForCategory && Object.keys(optionsForCategory).length > 0) {
+          initial[arrKey] = [parseInt(Object.keys(optionsForCategory)[0])]; 
+        } else {
+          initial[arrKey] = [1]; // Absolute fallback if no options defined
+        }
+      }
+    }
+    return initial;
+  };
+
+  const [formValues, setFormValues] = useState(() => initializeFormValues(defaultValues));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // IDs for form elements
+  const ids = {
+    mp_physics_arr: useId(),
+    ra_lw_physics_arr: useId(),
+    ra_sw_physics_arr: useId(),
+    sf_surface_physics_arr: useId(),
+    bl_pbl_physics_arr: useId(),
+    cu_physics_arr: useId(),
+  };
+
+  useEffect(() => {
+    setFormValues(initializeFormValues(defaultValues));
+  }, [defaultValues]);
+
+  const handleChange = (fieldName, value) => { // fieldName will be like 'mp_physics_arr'
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [fieldName]: [parseInt(value)], // Update the first element of the array
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // 添加延迟以显示动画效果
     setTimeout(() => {
       if (onSubmit) {
-        onSubmit(formValues);
+        onSubmit(formValues); // formValues is now { mp_physics_arr: [X], ... }
       }
       setIsSubmitting(false);
     }, 200);
   };
 
+  // Helper to render select fields
+  const renderSelectField = (fieldName, label, options) => {
+    // fieldName is like 'mp_physics_arr'
+    // We need to access formValues[fieldName][0] for the value
+    const currentValue = formValues[fieldName] && formValues[fieldName][0] !== undefined 
+                         ? formValues[fieldName][0].toString() 
+                         : "";
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={ids[fieldName]}>{label}</Label>
+        <Select 
+          value={currentValue}
+          onValueChange={(value) => handleChange(fieldName, value)}
+        >
+          <SelectTrigger id={ids[fieldName]} className="[&_[data-desc]]:hidden">
+            <SelectValue placeholder={`选择${label}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(options).map(([val, desc]) => (
+              <SelectItem key={val} value={val.toString()}>
+                {desc} 
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
+  
+  if (!formValues || Object.keys(formValues).length === 0) {
+      return <p>加载物理参数表单...</p>; // Or some other loading indicator
+  }
+
   return (
     <Card className="w-full max-w-4xl p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground">WRF物理参数设置</h2>
+        <h2 className="text-2xl font-bold text-foreground">WRF物理参数设置 (Context驱动)</h2>
         <p className="text-sm text-muted-foreground mt-1">
           选择适合您模拟需求的物理参数化方案
         </p>
@@ -60,119 +119,12 @@ const PhysicsForm = ({ onSubmit, defaultValues = {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor={mpPhysicsId}>微物理方案 (mp_physics)</Label>
-            <Select 
-              defaultValue={formValues.mp_physics.toString()} 
-              onValueChange={(value) => handleChange('mp_physics', value)}
-            >
-              <SelectTrigger id={mpPhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择微物理方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.mp_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={raLwPhysicsId}>长波辐射 (ra_lw_physics)</Label>
-            <Select 
-              defaultValue={formValues.ra_lw_physics.toString()} 
-              onValueChange={(value) => handleChange('ra_lw_physics', value)}
-            >
-              <SelectTrigger id={raLwPhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择长波辐射方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.ra_lw_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={raSwPhysicsId}>短波辐射 (ra_sw_physics)</Label>
-            <Select 
-              defaultValue={formValues.ra_sw_physics.toString()} 
-              onValueChange={(value) => handleChange('ra_sw_physics', value)}
-            >
-              <SelectTrigger id={raSwPhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择短波辐射方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.ra_sw_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={sfSurfacePhysicsId}>地表物理 (sf_surface_physics)</Label>
-            <Select 
-              defaultValue={formValues.sf_surface_physics.toString()} 
-              onValueChange={(value) => handleChange('sf_surface_physics', value)}
-            >
-              <SelectTrigger id={sfSurfacePhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择地表物理方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.sf_surface_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={blPblPhysicsId}>边界层方案 (bl_pbl_physics)</Label>
-            <Select 
-              defaultValue={formValues.bl_pbl_physics.toString()} 
-              onValueChange={(value) => handleChange('bl_pbl_physics', value)}
-            >
-              <SelectTrigger id={blPblPhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择边界层方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.bl_pbl_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={cuPhysicsId}>积云方案 (cu_physics)</Label>
-            <Select 
-              defaultValue={formValues.cu_physics.toString()} 
-              onValueChange={(value) => handleChange('cu_physics', value)}
-            >
-              <SelectTrigger id={cuPhysicsId} className="[&_[data-desc]]:hidden">
-                <SelectValue placeholder="选择积云方案" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PHYSICS_OPTIONS.cu_physics).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {renderSelectField("mp_physics_arr", "微物理方案 (mp_physics)", PHYSICS_OPTIONS.mp_physics)}
+          {renderSelectField("ra_lw_physics_arr", "长波辐射 (ra_lw_physics)", PHYSICS_OPTIONS.ra_lw_physics)}
+          {renderSelectField("ra_sw_physics_arr", "短波辐射 (ra_sw_physics)", PHYSICS_OPTIONS.ra_sw_physics)}
+          {renderSelectField("sf_surface_physics_arr", "地表物理 (sf_surface_physics)", PHYSICS_OPTIONS.sf_surface_physics)}
+          {renderSelectField("bl_pbl_physics_arr", "边界层方案 (bl_pbl_physics)", PHYSICS_OPTIONS.bl_pbl_physics)}
+          {renderSelectField("cu_physics_arr", "积云方案 (cu_physics)", PHYSICS_OPTIONS.cu_physics)}
         </div>
 
         <div className="flex justify-end mt-6">

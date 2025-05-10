@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useId } from "react";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
@@ -28,18 +28,22 @@ const TimeForm = ({ onSubmit, defaultValues = {
   const endDateId = useId();
   const dataSourceId = useId();
 
+  useEffect(() => {
+    setFormValues(defaultValues);
+    setErrors({});
+  }, [defaultValues]);
+
   const handleChange = (name, value) => {
-    setFormValues({
-      ...formValues,
+    setFormValues(prevValues => ({
+      ...prevValues,
       [name]: value
-    });
+    }));
     
-    // Clear error for this field
     if (errors[name]) {
-      setErrors({
-        ...errors,
+      setErrors(prevErrors => ({
+        ...prevErrors,
         [name]: null
-      });
+      }));
     }
   };
 
@@ -47,16 +51,19 @@ const TimeForm = ({ onSubmit, defaultValues = {
     const newErrors = {};
     const datePattern = /^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}:\d{2}$/;
     
-    if (!datePattern.test(formValues.start_date)) {
-      newErrors.start_date = "请使用正确的格式：YYYY-MM-DD_HH:MM:SS";
+    if (!formValues.start_date || !datePattern.test(formValues.start_date)) {
+      newErrors.start_date = "开始时间不能为空，且格式需为：YYYY-MM-DD_HH:MM:SS";
     }
     
-    if (!datePattern.test(formValues.end_date)) {
-      newErrors.end_date = "请使用正确的格式：YYYY-MM-DD_HH:MM:SS";
+    if (!formValues.end_date || !datePattern.test(formValues.end_date)) {
+      newErrors.end_date = "结束时间不能为空，且格式需为：YYYY-MM-DD_HH:MM:SS";
+    }
+
+    if (!formValues.data_source) {
+      newErrors.data_source = "请选择一个数据源";
     }
     
-    // Check if end date is after start date
-    if (Object.keys(newErrors).length === 0) {
+    if (!newErrors.start_date && !newErrors.end_date) {
       const startDate = new Date(formValues.start_date.replace("_", "T"));
       const endDate = new Date(formValues.end_date.replace("_", "T"));
       
@@ -74,8 +81,6 @@ const TimeForm = ({ onSubmit, defaultValues = {
     
     if (validateForm()) {
       setIsSubmitting(true);
-      
-      // 添加延迟以显示动画效果
       setTimeout(() => {
         if (onSubmit) {
           onSubmit(formValues);
@@ -135,20 +140,23 @@ const TimeForm = ({ onSubmit, defaultValues = {
           <div className="space-y-2">
             <Label htmlFor={dataSourceId}>数据源</Label>
             <Select
-              defaultValue={formValues.data_source}
+              value={formValues.data_source}
               onValueChange={(value) => handleChange("data_source", value)}
             >
-              <SelectTrigger id={dataSourceId}>
+              <SelectTrigger id={dataSourceId} className={errors.data_source ? "border-destructive" : ""}>
                 <SelectValue placeholder="选择气象数据源" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(DATA_SOURCES).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                {Object.entries(DATA_SOURCES).map(([val, label]) => (
+                  <SelectItem key={val} value={val}>
                     {label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {errors.data_source && (
+                <p className="text-xs text-destructive">{errors.data_source}</p>
+            )}
             <p className="text-xs text-muted-foreground">选择用于初始和边界条件的气象数据源</p>
           </div>
           

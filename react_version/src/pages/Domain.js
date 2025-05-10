@@ -11,7 +11,7 @@ const Domain = () => {
   const { toast } = useToast();
   const { config: globalConfig, updateConfigSection } = useConfig();
   const [nextDisabled, setNextDisabled] = React.useState(true);
-
+  
   useEffect(() => {
     const { domain_setup } = globalConfig;
     if (
@@ -20,10 +20,10 @@ const Domain = () => {
       domain_setup.dx_arr && domain_setup.dx_arr[0] &&
       domain_setup.map_proj
     ) {
-      setNextDisabled(false);
+          setNextDisabled(false);
     } else {
       setNextDisabled(true);
-    }
+      }
   }, [globalConfig.domain_setup]);
 
   const handleSubmit = (domainDataFromForm) => {
@@ -48,11 +48,11 @@ const Domain = () => {
 
     updateConfigSection('domain_setup', newDomainSetupData);
     
-    toast({
+      toast({
       title: "域设置已保存至全局配置",
       description: "您可以继续下一步配置或返回修改。",
-      variant: "default",
-    });
+        variant: "default",
+      });
   };
 
   const handleBack = () => {

@@ -1,46 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import DynamicsForm from "../components/DynamicsForm";
-import { DEFAULT_CONFIG } from "../utils/constants";
 import { Button } from "../components/ui/button";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { useToast } from "../components/ui/use-toast";
+import { useConfig } from "../context/ConfigContext";
 
 const Dynamics = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const { config: globalConfig, updateConfigSection } = useConfig();
 
-  useEffect(() => {
-    // 加载整体配置
-    const savedConfig = localStorage.getItem("wrf_config");
-    if (savedConfig) {
-      try {
-        setConfig(JSON.parse(savedConfig));
-      } catch (error) {
-        console.error("Error parsing saved configuration:", error);
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  const handleSubmit = (dynamicsData) => {
-    // 更新整体配置中的dynamics部分
-    const updatedConfig = {
-      ...config,
-      dynamics: dynamicsData
-    };
+  const handleSubmit = (dynamicsDataFromForm) => {
+    updateConfigSection('dynamics', dynamicsDataFromForm);
     
-    // 保存更新后的整体配置
-    localStorage.setItem("wrf_config", JSON.stringify(updatedConfig));
-    setConfig(updatedConfig);
-    
-    // 显示成功提示
     toast({
       title: "动力学参数已保存",
-      description: "您可以继续下一步配置",
+      description: "配置已更新，您可以继续下一步。",
       variant: "default",
     });
   };
@@ -53,13 +30,18 @@ const Dynamics = () => {
     navigate("/physics");
   };
 
-  if (loading) {
+  if (!globalConfig || !globalConfig.dynamics) {
     return (
       <div className="container mx-auto py-8 px-4 flex justify-center items-center">
-        <p>加载中...</p>
+        <p>加载配置中...</p> 
       </div>
     );
   }
+
+  const isNextDisabled = 
+    !globalConfig.dynamics.diff_opt_arr || 
+    globalConfig.dynamics.diff_opt_arr.length === 0 || 
+    globalConfig.dynamics.diff_opt_arr[0] === undefined;
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -83,7 +65,7 @@ const Dynamics = () => {
         
         <DynamicsForm 
           onSubmit={handleSubmit}
-          defaultValues={config.dynamics}
+          defaultValues={globalConfig.dynamics}
         />
         
         <div className="flex justify-between mt-6">
@@ -92,7 +74,7 @@ const Dynamics = () => {
           </Button>
           <Button 
             onClick={handleNext} 
-            disabled={!config.dynamics}
+            disabled={isNextDisabled}
           >
             下一步：配置审核
           </Button>

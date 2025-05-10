@@ -11,21 +11,18 @@ const Time = () => {
   const { config: globalConfig, updateConfigSection } = useConfig();
 
   const handleSubmit = (timeDataFromForm) => {
-    const newTimeControlData = {
-      start_date_str_arr: [timeDataFromForm.start_date],
-      end_date_str_arr: [timeDataFromForm.end_date],
-      data_source: timeDataFromForm.data_source,
+    const updatedTimeControl = {
       ...globalConfig.time_control,
       start_date_str_arr: [timeDataFromForm.start_date],
       end_date_str_arr: [timeDataFromForm.end_date],
       data_source: timeDataFromForm.data_source,
     };
     
-    updateConfigSection('time_control', newTimeControlData);
+    updateConfigSection('time_control', updatedTimeControl);
     
     toast({
-      title: "时间设置已保存至全局配置",
-      description: "您可以继续下一步配置或返回修改。",
+      title: "时间设置已保存",
+      description: "配置已更新，您可以继续下一步。",
       variant: "default",
     });
   };

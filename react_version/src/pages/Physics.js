@@ -1,46 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import PhysicsForm from "../components/PhysicsForm";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/use-toast";
-import { DEFAULT_CONFIG } from "../utils/constants";
+import { useConfig } from "../context/ConfigContext";
 
 const Physics = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
-  
-  useEffect(() => {
-    // 加载整体配置
-    const savedConfig = localStorage.getItem("wrf_config");
-    if (savedConfig) {
-      try {
-        setConfig(JSON.parse(savedConfig));
-      } catch (error) {
-        console.error("Error parsing saved configuration:", error);
-      }
-    }
-    setLoading(false);
-  }, []);
+  const { config: globalConfig, updateConfigSection } = useConfig();
 
-  const handlePhysicsSubmit = (physicsData) => {
-    // 更新整体配置中的physics部分
-    const updatedConfig = {
-      ...config,
-      physics: physicsData
-    };
+  const handlePhysicsSubmit = (physicsDataFromForm) => {
+    updateConfigSection('physics', physicsDataFromForm);
     
-    // 保存更新后的整体配置
-    localStorage.setItem("wrf_config", JSON.stringify(updatedConfig));
-    setConfig(updatedConfig);
-    
-    // 显示成功提示
     toast({
       title: "物理参数已保存",
-      description: "您可以继续下一步配置",
+      description: "配置已更新，您可以继续下一步。",
       variant: "default",
     });
   };
@@ -53,13 +30,18 @@ const Physics = () => {
     navigate("/domain");
   };
 
-  if (loading) {
+  if (!globalConfig || !globalConfig.physics) {
     return (
       <div className="container mx-auto py-8 px-4 flex justify-center items-center">
-        <p>加载中...</p>
+        <p>加载配置中...</p>
       </div>
     );
   }
+
+  const isNextDisabled = 
+    !globalConfig.physics.mp_physics_arr || 
+    globalConfig.physics.mp_physics_arr.length === 0 || 
+    !globalConfig.physics.mp_physics_arr[0];
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -81,7 +63,10 @@ const Physics = () => {
           </div>
         </Alert>
         
-        <PhysicsForm onSubmit={handlePhysicsSubmit} defaultValues={config.physics} />
+        <PhysicsForm 
+          onSubmit={handlePhysicsSubmit} 
+          defaultValues={globalConfig.physics} 
+        />
         
         <div className="flex justify-between mt-6">
           <Button variant="outline" onClick={handleBack}>
@@ -89,7 +74,7 @@ const Physics = () => {
           </Button>
           <Button 
             onClick={handleNext} 
-            disabled={!config.physics}
+            disabled={isNextDisabled}
           >
             下一步：动力学设置
           </Button>

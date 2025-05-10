@@ -1,4 +1,4 @@
-import React, { useState, useId } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
@@ -13,52 +13,79 @@ import {
 } from "./CustomSelect";
 import { DYNAMICS_OPTIONS } from "../utils/constants";
 
+// Initializer for formValues based on defaultValues from context (array structure)
+const initializeFormValues = (dv) => {
+  if (!dv) return {};
+  const initial = {};
+  const fields = ["diff_opt", "km_opt", "non_hydrostatic"]; // Add other dynamics fields as needed
+  
+  fields.forEach(field => {
+    const arrKey = `${field}_arr`;
+    if (dv[arrKey] && dv[arrKey].length > 0) {
+      initial[arrKey] = [...dv[arrKey]];
+    } else {
+      // Fallback logic if not present in defaultValues
+      if (field === "non_hydrostatic") {
+        initial[arrKey] = [true]; // Default for boolean
+      } else if (DYNAMICS_OPTIONS[field] && Object.keys(DYNAMICS_OPTIONS[field]).length > 0) {
+        initial[arrKey] = [parseInt(Object.keys(DYNAMICS_OPTIONS[field])[0])];
+      } else {
+        initial[arrKey] = [field === "diff_opt" ? 2 : 4]; // Default for diff_opt/km_opt if no constant
+      }
+    }
+  });
+  // Add any other specific dynamics options here if they don't follow the _arr pattern directly
+  // For example: if there's a 'time_step_seconds_arr', etc.
+  return initial;
+};
+
 const DynamicsForm = ({ 
   onSubmit,
-  defaultValues = {
-    diff_opt: 2,
-    km_opt: 4,
-    non_hydrostatic: true,
-  }
+  defaultValues // Expected: { diff_opt_arr: [X], km_opt_arr: [Y], non_hydrostatic_arr: [Z], ... }
 }) => {
-  const [formValues, setFormValues] = useState(defaultValues);
+  const [formValues, setFormValues] = useState(() => initializeFormValues(defaultValues));
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // 生成唯一ID
-  const diffOptId = useId();
-  const kmOptId = useId();
-  const nonHydrostaticId = useId();
+  const ids = {
+    diff_opt_arr: useId(),
+    km_opt_arr: useId(),
+    non_hydrostatic_arr: useId(),
+    // Add other ids as needed
+  };
 
-  const handleChange = (name, value) => {
+  useEffect(() => {
+    setFormValues(initializeFormValues(defaultValues));
+    setErrors({});
+  }, [defaultValues]);
+
+  const handleChange = (fieldName, value) => {
+    let processedValue = value;
+    // For boolean (non_hydrostatic_arr), value is already boolean from checkbox
+    // For selects, value is string, parse to int
+    if (fieldName !== "non_hydrostatic_arr") {
+      processedValue = parseInt(value, 10);
+    }
+
     setFormValues(prev => ({
       ...prev,
-      [name]: typeof value === 'string' && !isNaN(parseInt(value, 10)) 
-        ? parseInt(value, 10) 
-        : value
+      [fieldName]: [processedValue] // Store as single-element array for MVP
     }));
     
-    // 清除该字段的错误
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: null
-      });
+    if (errors[fieldName]) {
+      setErrors(prevErrors => ({ ...prevErrors, [fieldName]: null }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
-    // 验证diff_opt
-    if (formValues.diff_opt === undefined || formValues.diff_opt === null) {
-      newErrors.diff_opt = "请选择扩散选项";
+    if (!formValues.diff_opt_arr || formValues.diff_opt_arr[0] === undefined) {
+      newErrors.diff_opt_arr = "请选择扩散选项";
     }
-    
-    // 验证km_opt
-    if (formValues.km_opt === undefined || formValues.km_opt === null) {
-      newErrors.km_opt = "请选择湍流系数选项";
+    if (!formValues.km_opt_arr || formValues.km_opt_arr[0] === undefined) {
+      newErrors.km_opt_arr = "请选择湍流系数选项";
     }
+    // non_hydrostatic_arr is a boolean, usually doesn't need explicit validation unless it can be undefined
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,24 +93,25 @@ const DynamicsForm = ({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    
     if (validateForm()) {
       setIsSubmitting(true);
-      
-      // 添加延迟以显示动画效果
       setTimeout(() => {
         if (onSubmit) {
-          onSubmit(formValues);
+          onSubmit(formValues); // formValues is now { diff_opt_arr: [X], ... }
         }
         setIsSubmitting(false);
       }, 200);
     }
   };
+  
+  if (!formValues || Object.keys(formValues).length === 0) {
+      return <p>加载动力学参数表单...</p>;
+  }
 
   return (
     <Card className="w-full max-w-4xl p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground">WRF动力学配置</h2>
+        <h2 className="text-2xl font-bold text-foreground">WRF动力学配置 (Context驱动)</h2>
         <p className="text-sm text-muted-foreground mt-1">
           配置WRF模型的动力学参数
         </p>
@@ -93,60 +121,60 @@ const DynamicsForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Diffusion Option */}
           <div className="space-y-2">
-            <Label htmlFor={diffOptId}>扩散选项 (diff_opt)</Label>
+            <Label htmlFor={ids.diff_opt_arr}>扩散选项 (diff_opt)</Label>
             <Select 
-              defaultValue={formValues.diff_opt.toString()} 
-              onValueChange={(value) => handleChange("diff_opt", value)}
+              value={formValues.diff_opt_arr && formValues.diff_opt_arr[0] !== undefined ? formValues.diff_opt_arr[0].toString() : ""}
+              onValueChange={(value) => handleChange("diff_opt_arr", value)}
             >
-              <SelectTrigger id={diffOptId} className={errors.diff_opt ? "border-destructive" : ""}>
+              <SelectTrigger id={ids.diff_opt_arr} className={errors.diff_opt_arr ? "border-destructive" : ""}>
                 <SelectValue placeholder="选择扩散选项" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(DYNAMICS_OPTIONS.diff_opt).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                {Object.entries(DYNAMICS_OPTIONS.diff_opt).map(([optValue, label]) => (
+                  <SelectItem key={optValue} value={optValue.toString()}>
                     {label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.diff_opt && (
-              <p className="text-xs text-destructive">{errors.diff_opt}</p>
+            {errors.diff_opt_arr && (
+              <p className="text-xs text-destructive">{errors.diff_opt_arr}</p>
             )}
           </div>
 
           {/* Eddy Coefficient Option */}
           <div className="space-y-2">
-            <Label htmlFor={kmOptId}>湍流系数选项 (km_opt)</Label>
+            <Label htmlFor={ids.km_opt_arr}>湍流系数选项 (km_opt)</Label>
             <Select 
-              defaultValue={formValues.km_opt.toString()} 
-              onValueChange={(value) => handleChange("km_opt", value)}
+              value={formValues.km_opt_arr && formValues.km_opt_arr[0] !== undefined ? formValues.km_opt_arr[0].toString() : ""}
+              onValueChange={(value) => handleChange("km_opt_arr", value)}
             >
-              <SelectTrigger id={kmOptId} className={errors.km_opt ? "border-destructive" : ""}>
+              <SelectTrigger id={ids.km_opt_arr} className={errors.km_opt_arr ? "border-destructive" : ""}>
                 <SelectValue placeholder="选择湍流系数选项" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(DYNAMICS_OPTIONS.km_opt).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                {Object.entries(DYNAMICS_OPTIONS.km_opt).map(([optValue, label]) => (
+                  <SelectItem key={optValue} value={optValue.toString()}>
                     {label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.km_opt && (
-              <p className="text-xs text-destructive">{errors.km_opt}</p>
+            {errors.km_opt_arr && (
+              <p className="text-xs text-destructive">{errors.km_opt_arr}</p>
             )}
           </div>
 
           {/* Non-hydrostatic Option - 跨越两列 */}
-          <div className="col-span-1 md:col-span-2 flex items-center space-x-2">
+          <div className="col-span-1 md:col-span-2 flex items-center space-x-2 mt-4">
             <input
               type="checkbox"
-              id={nonHydrostaticId}
-              checked={formValues.non_hydrostatic}
-              onChange={() => handleChange("non_hydrostatic", !formValues.non_hydrostatic)}
-              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              id={ids.non_hydrostatic_arr} // Use ids object
+              checked={formValues.non_hydrostatic_arr ? !!formValues.non_hydrostatic_arr[0] : false}
+              onChange={(e) => handleChange("non_hydrostatic_arr", e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
             />
-            <Label htmlFor={nonHydrostaticId} className="cursor-pointer">
+            <Label htmlFor={ids.non_hydrostatic_arr} className="cursor-pointer">
               使用非静力学模式 (Non-hydrostatic)
             </Label>
           </div>
@@ -170,9 +198,9 @@ const DynamicsForm = ({
           <Button 
             type="submit" 
             className={`relative ${isSubmitting ? 'opacity-80 scale-95' : ''}`}
-            disabled={isSubmitting}
+            disabled={isSubmitting || Object.keys(errors).some(key => errors[key] !== null)}
           >
-            {isSubmitting ? '保存中...' : '保存配置'}
+            {isSubmitting ? '保存中...' : '保存动力学配置'} 
           </Button>
         </div>
       </form>
