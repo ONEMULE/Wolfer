@@ -91,25 +91,24 @@ const ConfigContext = createContext();
 const configReducer = (state, action) => {
   switch (action.type) {
     case 'UPDATE_CONFIG_SECTION':
-      console.log(`Reducer: Updating section ${action.section}`, action.data);
+      const { section, data } = action.payload; 
+      console.log(`Reducer: Updating section ${section}`, data);
       const newState = {
         ...state,
-        [action.section]: {
-          ...state[action.section],
-          ...action.data,
+        [section]: {
+          ...state[section],
+          ...data,
         },
         _lastUpdated: Date.now(), // Ensure config object reference changes
       };
       console.log("Reducer: New state after update:", newState);
       return newState;
     case 'SET_ENTIRE_CONFIG':
-      console.log("Reducer: Setting entire config:", action.data);
-      return { ...action.data, _lastUpdated: Date.now() }; // Also update timestamp here
+      console.log("Reducer: Setting entire config:", action.payload);
+      return { ...action.payload, _lastUpdated: Date.now() }; 
     case 'RESET_CONFIG':
       console.log("Reducer: Resetting config");
-      // Ensure that the reset action also properly creates a new object reference
-      // and resets the _lastUpdated timestamp as per baseInitialState.
-      return { ...baseInitialState, _lastUpdated: Date.now() }; // Or baseInitialState._lastUpdated if reset shouldn't trigger save immediately
+      return { ...baseInitialState, _lastUpdated: Date.now() }; // Ensure a new object reference
     default:
       return state;
   }
@@ -119,10 +118,15 @@ export const ConfigProvider = ({ children }) => {
   const [config, dispatch] = useReducer(configReducer, baseInitialState, (initial) => {
     try {
       const localData = localStorage.getItem('global_wrf_config');
-      return localData ? JSON.parse(localData) : initial;
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        // Ensure _lastUpdated is present, or add it if loading an old config structure
+        return { ...parsedData, _lastUpdated: parsedData._lastUpdated || Date.now() };
+      }
+      return { ...initial, _lastUpdated: Date.now() }; // Ensure initial state also has it
     } catch (error) {
       console.error("Error reading config from localStorage:", error);
-      return initial;
+      return { ...initial, _lastUpdated: Date.now() }; // Fallback with _lastUpdated
     }
   });
 
@@ -157,7 +161,7 @@ export const ConfigProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_CONFIG_SECTION', payload: { section, data } });
   };
 
-  const loadConfig = (loadedConfig) => { // Function to load an entire config object
+  const loadConfig = (loadedConfig) => { 
     dispatch({ type: 'SET_ENTIRE_CONFIG', payload: loadedConfig });
   };
 

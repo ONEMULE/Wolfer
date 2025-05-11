@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建一个axios实例
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000', 
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001', 
   timeout: 30000, // 30秒超时
   headers: {
     'Content-Type': 'application/json',
