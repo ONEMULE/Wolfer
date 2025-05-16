@@ -13,6 +13,7 @@ import WrfConfig from './pages/WrfConfig';
 import SimulationResults from './pages/SimulationResults';
 import WindAnalysis from './pages/WindAnalysis';
 import EconomicAnalysis from './pages/EconomicAnalysis';
+import LingxiAssistant from './pages/LingxiAssistant';
 import { Toaster } from './components/ui/toaster.jsx';
 import { ConfigProvider } from './context/ConfigContext';
 
@@ -39,6 +40,7 @@ function App() {
           <Route path="/simulation-results" element={<SimulationResults />} />
           <Route path="/wind-analysis" element={<WindAnalysis />} />
           <Route path="/economic-analysis" element={<EconomicAnalysis />} />
+          <Route path="/lingxi-assistant" element={<LingxiAssistant />} />
           
           {/* 重定向和404 */}
           <Route path="/home" element={<Navigate to="/" replace />} />

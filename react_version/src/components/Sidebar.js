@@ -6,7 +6,8 @@ import {
   BarChart2, 
   Wind, 
   TrendingUp,
-  ChevronRight 
+  ChevronRight,
+  MessageCircle
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -43,6 +44,11 @@ const sidebarItems = [
     title: '废效及经济效益分析',
     icon: <TrendingUp className="h-5 w-5" />,
     href: '/economic-analysis',
+  },
+  {
+    title: '灵犀助手',
+    icon: <MessageCircle className="h-5 w-5" />,
+    href: '/lingxi-assistant',
   },
 ];
 

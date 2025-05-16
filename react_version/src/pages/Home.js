@@ -308,7 +308,7 @@ const Home = () => {
       badge={{
         text: "WRF Namelist Generator",
       }}
-      title="简化天气研究和预报模型配置"
+      title="天气研究和预报模型配置模块"
       description="一个用于创建、验证和管理Weather Research and Forecasting (WRF)模型配置文件的强大工具。为您的大气研究和天气模拟节省时间并减少错误。"
       actions={[
         {
